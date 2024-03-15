@@ -11,9 +11,15 @@ const userSchema = new Schema(
       type: String,
       required: true,
       unique: true,
+      lowercase: true,
     },
     password: {
       type: String,
+      required: true,
+    },
+    role: {
+      type: String,
+      default: "Basic",
       required: true,
     },
     likedGossips: [{ type: mongoose.Schema.Types.ObjectId, ref: "Gossip" }],

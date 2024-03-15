@@ -4,7 +4,9 @@ import { URI } from "../config";
 import { GossipDBType } from "../domain/gossips-service";
 import { UserDBType } from "../domain/users-service";
 
-const client = new MongoClient(URI!, {
+const mongoDB = URI || "mongodb://0.0.0.0:27017";
+
+const client = new MongoClient(mongoDB, {
   serverApi: {
     version: ServerApiVersion.v1,
     strict: true,

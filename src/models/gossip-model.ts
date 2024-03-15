@@ -5,7 +5,7 @@ const gossipSchema = new Schema(
   {
     title: { type: String, required: true },
     content: { type: String, required: true },
-    imageUrl: { type: String },
+    imageUrl: String,
     author: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
