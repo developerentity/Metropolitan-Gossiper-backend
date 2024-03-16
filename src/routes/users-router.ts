@@ -2,11 +2,15 @@ import { Request, Router, Response } from "express";
 
 import { jwtService } from "../application/jwt-service";
 import { HTTP_STATUSES } from "../http-statuses";
-import { RequestWithQuery } from "../types/request-types";
+import { RequestWithParams, RequestWithQuery } from "../types/request-types";
 import { usersService } from "../domain/users-service";
 import { QueryUsersModel } from "../models/users/query-users-model";
-import { UsersListViewModel } from "../models/users/user-view-model";
+import {
+  UserViewModel,
+  UsersListViewModel,
+} from "../models/users/user-view-model";
 import { usersQueryRepo } from "../repositories/users-query-repo";
+import { URIParamsUserIDModel } from "../models/users/uri-params-user-id-model";
 
 export const usersRouter = Router({});
 
@@ -23,6 +27,22 @@ usersRouter.get(
       sortOrder: req.query.sortOrder,
     });
     res.send(foundUsers);
+  }
+);
+usersRouter.get(
+  "/:id",
+  async (
+    req: RequestWithParams<URIParamsUserIDModel>,
+    res: Response<UserViewModel>
+  ) => {
+    const foundUser: UserViewModel | null = await usersQueryRepo.findUserById(
+      req.params.id
+    );
+    if (foundUser) {
+      res.send(foundUser);
+    } else {
+      res.sendStatus(HTTP_STATUSES.NOT_FOUND_404);
+    }
   }
 );
 usersRouter.post("/signup", async (req: Request, res: Response) => {

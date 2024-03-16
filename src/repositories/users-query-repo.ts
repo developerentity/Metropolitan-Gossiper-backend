@@ -1,10 +1,7 @@
-import { ObjectId } from "mongodb";
-
 import { UsersListViewModel } from "../models/users/user-view-model";
 import { UserViewModel } from "../models/users/user-view-model";
-import { usersCollection } from "./db";
 import { getUserViewModel } from "../models/users/get-user-view-model";
-// import { getUserViewModel } from "../utils/getUserViewModel";
+import User from "../models/user-model";
 
 /**
  * This is the DAL (Data Access Layer).
@@ -22,29 +19,30 @@ export const usersQueryRepo = {
     const sortField = queryParams.sortField || "createdAt";
     const sortOrder = queryParams.sortOrder === "desc" ? -1 : 1;
 
-    const totalUsers = await usersCollection.countDocuments();
+    const totalUsers = await User.countDocuments();
     const totalPages = Math.ceil(totalUsers / limit);
 
-    const users = await usersCollection
-      .find()
+    const users = await User.find()
       .sort({ [sortField]: sortOrder })
       .skip((page - 1) * limit)
       .limit(limit)
-      .toArray();
+      .exec();
+
+    const items = users.map((user) => getUserViewModel(user.toObject()));
 
     return {
       totalItems: totalUsers,
       totalPages: totalPages,
       currentPage: page,
-      items: users.map(getUserViewModel),
+      items: items,
     };
   },
-  async findUserById(id: ObjectId): Promise<UserViewModel | null> {
-    const result = await usersCollection.findOne({ _id: id });
-    return result ? getUserViewModel(result) : null;
+  async findUserById(id: string): Promise<UserViewModel | null> {
+    const user = await User.findById(id).exec();
+    return user ? getUserViewModel(user.toObject()) : null;
   },
   async findByUsername(username: string): Promise<UserViewModel | null> {
-    const result = await usersCollection.findOne({ username: username });
-    return result ? getUserViewModel(result) : null;
+    const user = await User.findOne({ username: username }).exec();
+    return user ? getUserViewModel(user.toObject()) : null;
   },
 };

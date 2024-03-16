@@ -55,5 +55,5 @@ export type UserDBType = {
   email: string;
   password: string;
   createdAt: Date;
-  role: "admin" | "basic";
+  role: String;
 };

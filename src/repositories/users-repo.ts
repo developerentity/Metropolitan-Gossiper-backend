@@ -1,7 +1,7 @@
 import { ObjectId } from "mongodb";
 
 import { UserDBType } from "../domain/users-service";
-import { usersCollection } from "./db";
+import User from "../models/user-model";
 
 /**
  * This is the DAL (Data Access Layer).
@@ -9,21 +9,17 @@ import { usersCollection } from "./db";
  */
 export const usersRepo = {
   async getAllUsers(): Promise<UserDBType[]> {
-    return await usersCollection.find().sort("createdAt", -1).toArray();
+    return await User.find().sort({ createdAt: -1 });
   },
   async createUser(user: UserDBType): Promise<UserDBType | null> {
-    const result = await usersCollection.insertOne(user);
-    const created = await usersCollection.findOne({ _id: result.insertedId });
-    return created;
+    return await User.create(user);
   },
   async findUserById(id: ObjectId): Promise<UserDBType | null> {
-    const user = await usersCollection.findOne({ _id: id });
-    return user;
+    return await User.findById(id);
   },
   async findByLoginOrEmail(loginOrEmail: string): Promise<UserDBType | null> {
-    const user = await usersCollection.findOne({
+    return await User.findOne({
       $or: [{ email: loginOrEmail }, { username: loginOrEmail }],
     });
-    return user;
   },
 };
