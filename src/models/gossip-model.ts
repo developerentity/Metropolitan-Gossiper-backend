@@ -1,20 +1,28 @@
-import mongoose from "mongoose";
-const { Schema } = mongoose;
+import mongoose, { Document, Schema } from "mongoose";
 
-const gossipSchema = new Schema(
+export interface IGossip {
+  title: string;
+  content: string;
+  imageUrl: string;
+  author: any;
+}
+
+export interface IGossipModel extends IGossip, Document {}
+
+const GossipSchema: Schema = new Schema(
   {
     title: { type: String, required: true },
     content: { type: String, required: true },
     imageUrl: String,
     author: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: Schema.Types.ObjectId,
       ref: "User",
       required: true,
     },
-    comments: [{ type: mongoose.Schema.Types.ObjectId, ref: "Comment" }],
-    likes: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+    comments: [{ type: Schema.Types.ObjectId, ref: "Comment" }],
+    likes: [{ type: Schema.Types.ObjectId, ref: "User" }],
   },
   { timestamps: true }
 );
 
-export default mongoose.model("Gossip", gossipSchema);
+export default mongoose.model<IGossipModel>("Gossip", GossipSchema);
