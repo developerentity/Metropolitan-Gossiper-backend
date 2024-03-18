@@ -4,7 +4,9 @@ export interface IGossip {
   title: string;
   content: string;
   imageUrl: string;
-  author: any;
+  author: string;
+  comments: string[];
+  likes: string[];
 }
 
 export interface IGossipModel extends IGossip, Document {}
