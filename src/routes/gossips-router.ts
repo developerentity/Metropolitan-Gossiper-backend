@@ -1,6 +1,6 @@
 import express from "express";
 import controller from "../controllers/gossip-controller";
-import { basicTokenValidator } from "../middlewares/basik-token-validator";
+import { basicTokenValidator } from "../middlewares/basic-token-validator";
 
 const router = express.Router();
 
