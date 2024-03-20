@@ -4,20 +4,18 @@ import { loginValidator } from "../validators/loginValidator";
 import { usersService } from "../domain/users-service";
 import { HTTP_STATUSES } from "../http-statuses";
 import { jwtService } from "../application/jwt-service";
-import { validate } from "../middlewares/validate";
 
 export const authRouter = Router({});
 
 authRouter.post(
   "/signin",
   loginValidator,
-  validate,
   async (req: Request, res: Response) => {
     const { loginOrEmail, password } = req.body;
     const user = await usersService.checkCredentials(loginOrEmail, password);
     if (user) {
       const maxAge = 3 * 60 * 60;
-      const token = jwtService.createJWT(user);
+      const token = await jwtService.createJWT(user, maxAge);
       res.cookie("token", token, {
         httpOnly: true,
         maxAge: maxAge * 1000,

@@ -50,7 +50,7 @@ usersRouter.post("/signup", async (req: Request, res: Response) => {
   const user = await usersService.createUser(username, email, password);
   if (user) {
     const maxAge = 3 * 60 * 60;
-    const token = jwtService.createJWT(user);
+    const token = jwtService.createJWT(user, maxAge);
     res.cookie("token", token, {
       httpOnly: true,
       maxAge: maxAge * 1000,
