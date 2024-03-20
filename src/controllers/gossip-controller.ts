@@ -1,29 +1,38 @@
-import { NextFunction, Request, Response } from "express";
+import { Request, Response } from "express";
 import mongoose from "mongoose";
+import User from "../models/user-model";
 import Gossip from "../models/gossip-model";
 import { HTTP_STATUSES } from "../http-statuses";
 
-const createGossip = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  const { name } = req.body;
+const createGossip = async (req: Request, res: Response) => {
+  const { title, content, imageUrl } = req.body;
+  const author = req.user?._id;
+
+  if (!author)
+    return res
+      .status(HTTP_STATUSES.UNAUTHORIZED_401)
+      .json({ error: "Unauthorized" });
 
   const gossip = new Gossip({
     _id: new mongoose.Types.ObjectId(),
-    name,
+    title,
+    content,
+    imageUrl: imageUrl,
+    author,
   });
 
   try {
     const createdGossip = await gossip.save();
+    const gossipAuthor = await User.findByIdAndUpdate(author, {
+      $push: { gossips: createdGossip._id },
+    });
     return res.status(HTTP_STATUSES.CREATED_201).json({ gossip });
   } catch (error) {
     return res.status(HTTP_STATUSES.INTERNAL_SERVER_ERROR_500).json({ error });
   }
 };
 
-const readGossip = async (req: Request, res: Response, next: NextFunction) => {
+const readGossip = async (req: Request, res: Response) => {
   const gossipId = req.params.gossipId;
 
   try {
@@ -36,7 +45,7 @@ const readGossip = async (req: Request, res: Response, next: NextFunction) => {
   }
 };
 
-const readAll = async (req: Request, res: Response, next: NextFunction) => {
+const readAll = async (req: Request, res: Response) => {
   try {
     const gossips = await Gossip.find();
     return res.status(HTTP_STATUSES.OK_200).json({ gossips });
@@ -45,16 +54,18 @@ const readAll = async (req: Request, res: Response, next: NextFunction) => {
   }
 };
 
-const updateGossip = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+const updateGossip = async (req: Request, res: Response) => {
   try {
+    const author = req.user?._id;
     const gossipId = req.params.gossipId;
     const gossip = await Gossip.findById(gossipId);
 
     if (gossip) {
+      if (author.toString() !== gossip.author.toString())
+        return res
+          .status(HTTP_STATUSES.FORBIDDEN_403)
+          .json({ error: "Forbidden" });
+
       gossip.set(req.body);
       const updatedGossip = await gossip.save();
       return res
@@ -70,19 +81,19 @@ const updateGossip = async (
   }
 };
 
-const deleteGossip = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+const deleteGossip = async (req: Request, res: Response) => {
+  const author = req.user?._id;
   const gossipId = req.params.gossipId;
 
   try {
     const deletableGossip = await Gossip.findByIdAndDelete(gossipId);
     if (deletableGossip) {
-      res
-        .status(HTTP_STATUSES.CREATED_201)
-        .json({ deletableGossip, message: "Deleted" });
+      if (author.toString() !== deletableGossip.author.toString())
+        return res
+          .status(HTTP_STATUSES.FORBIDDEN_403)
+          .json({ error: "Forbidden" });
+
+      res.status(HTTP_STATUSES.CREATED_201).json({ message: "Deleted" });
     } else {
       res.status(HTTP_STATUSES.NOT_FOUND_404).json({ message: "not found" });
     }
