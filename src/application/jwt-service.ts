@@ -1,9 +1,10 @@
 import jwt, { JwtPayload } from "jsonwebtoken";
+
+import { IUserModel } from "../models/user-model";
 import { SECRET_ACCESS_TOKEN } from "../config";
-import { UserDBType } from "../domain/users-service";
 
 export const jwtService = {
-  async createJWT(user: UserDBType, maxAge: number) {
+  async createJWT(user: IUserModel, maxAge: number) {
     const token = jwt.sign({ userId: user._id }, SECRET_ACCESS_TOKEN!, {
       expiresIn: maxAge,
     });

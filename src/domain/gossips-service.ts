@@ -1,9 +1,9 @@
 import { ObjectId } from "mongodb";
-import { UserDBType } from "./users-service";
+import { IUserModel } from "../models/user-model";
 
 export type GossipDBType = {
   _id: ObjectId;
-  authorData: UserDBType;
+  authorData: IUserModel;
   title: string;
   content: {
     imgUrl: string;

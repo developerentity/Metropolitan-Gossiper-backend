@@ -6,11 +6,11 @@ import { RequestWithParams, RequestWithQuery } from "../types/request-types";
 import { usersService } from "../domain/users-service";
 import { QueryUsersModel } from "../models/users/query-users-model";
 import {
-  UserViewModel,
   UsersListViewModel,
 } from "../models/users/user-view-model";
 import { usersQueryRepo } from "../repositories/users-query-repo";
 import { URIParamsUserIDModel } from "../models/users/uri-params-user-id-model";
+import { IUserModel } from "../models/user-model";
 
 export const usersRouter = Router({});
 
@@ -18,7 +18,7 @@ usersRouter.get(
   "/get-users",
   async (
     req: RequestWithQuery<QueryUsersModel>,
-    res: Response<UsersListViewModel>
+    res: Response
   ) => {
     const foundUsers: UsersListViewModel = await usersQueryRepo.getAllUsers({
       limit: +req.query.pageSize,
@@ -33,9 +33,9 @@ usersRouter.get(
   "/:id",
   async (
     req: RequestWithParams<URIParamsUserIDModel>,
-    res: Response<UserViewModel>
+    res: Response<IUserModel>
   ) => {
-    const foundUser: UserViewModel | null = await usersQueryRepo.findUserById(
+    const foundUser: IUserModel | null = await usersQueryRepo.findUserById(
       req.params.id
     );
     if (foundUser) {

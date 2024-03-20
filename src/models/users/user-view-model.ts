@@ -1,3 +1,5 @@
+import { IUserModel } from "../user-model";
+
 export type UserViewModel = {
   /**
    * User ID
@@ -17,5 +19,5 @@ export type UsersListViewModel = {
   totalItems: number;
   totalPages: number;
   currentPage: number;
-  items: UserViewModel[];
+  items: IUserModel[];
 };

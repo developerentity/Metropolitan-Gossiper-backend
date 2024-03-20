@@ -1,7 +1,6 @@
 import { UsersListViewModel } from "../models/users/user-view-model";
 import { UserViewModel } from "../models/users/user-view-model";
-import { getUserViewModel } from "../models/users/get-user-view-model";
-import User from "../models/user-model";
+import User, { IUserModel } from "../models/user-model";
 
 /**
  * This is the DAL (Data Access Layer).
@@ -28,21 +27,19 @@ export const usersQueryRepo = {
       .limit(limit)
       .exec();
 
-    const items = users.map((user) => getUserViewModel(user.toObject()));
-
     return {
       totalItems: totalUsers,
       totalPages: totalPages,
       currentPage: page,
-      items: items,
+      items: users,
     };
   },
-  async findUserById(id: string): Promise<UserViewModel | null> {
-    const user = await User.findById(id).exec();
-    return user ? getUserViewModel(user.toObject()) : null;
+  async findUserById(id: string): Promise<IUserModel | null> {
+    const user = await User.findById(id).populate("gossips").exec();
+    return user;
   },
-  async findByUsername(username: string): Promise<UserViewModel | null> {
+  async findByUsername(username: string): Promise<IUserModel | null> {
     const user = await User.findOne({ username: username }).exec();
-    return user ? getUserViewModel(user.toObject()) : null;
+    return user;
   },
 };

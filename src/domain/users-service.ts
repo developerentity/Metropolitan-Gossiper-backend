@@ -1,6 +1,7 @@
 import bcrypt from "bcrypt";
 import { ObjectId } from "mongodb";
 import { usersRepo } from "../repositories/users-repo";
+import { IUser, IUserModel } from "../models/user-model";
 
 /**
  *  This is a BLL (Business Logic Layer).
@@ -11,28 +12,30 @@ export const usersService = {
     login: string,
     email: string,
     password: string
-  ): Promise<UserDBType | null> {
+  ): Promise<IUserModel | null> {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    const newUser: UserDBType = {
-      _id: new ObjectId(),
+    const newUser: IUser = {
       username: login,
       email,
       password: hashedPassword,
-      createdAt: new Date(),
       role: "basic",
+      comments: [],
+      likedComments: [],
+      likedGossips: [],
+      gossips: [],
     };
 
     return usersRepo.createUser(newUser);
   },
-  async findUserById(id: ObjectId): Promise<UserDBType | null> {
+  async findUserById(id: ObjectId): Promise<IUserModel | null> {
     return usersRepo.findUserById(id);
   },
   async checkCredentials(
     loginOrEmail: string,
     password: string
-  ): Promise<UserDBType | null> {
+  ): Promise<IUserModel | null> {
     const user = await usersRepo.findByLoginOrEmail(loginOrEmail);
     if (!user) return null;
 
@@ -48,12 +51,4 @@ export const usersService = {
       return null;
     }
   },
-};
-export type UserDBType = {
-  _id: ObjectId;
-  username: string;
-  email: string;
-  password: string;
-  createdAt: Date;
-  role: String;
 };
