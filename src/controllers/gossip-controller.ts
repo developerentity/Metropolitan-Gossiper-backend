@@ -1,6 +1,5 @@
 import { Request, Response } from "express";
-import mongoose from "mongoose";
-import User, { IUserModel } from "../models/user-model";
+import User from "../models/user-model";
 import Gossip, { IGossipModel } from "../models/gossip-model";
 import { HTTP_STATUSES } from "../http-statuses";
 import Logging from "../library/Logging";
@@ -15,7 +14,6 @@ const createGossip = async (req: Request, res: Response) => {
       .json({ error: "Unauthorized" });
 
   const gossip = new Gossip({
-    _id: new mongoose.Types.ObjectId(),
     title,
     content,
     imageUrl: imageUrl,
