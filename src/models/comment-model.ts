@@ -1,12 +1,18 @@
-import mongoose from "mongoose";
-const { Schema } = mongoose;
+import mongoose, { Document, Schema } from "mongoose";
 
-const commentSchema = new Schema(
+export interface IComment {
+  content: string;
+  author: string;
+  gossip: string;
+  parent: string | null;
+  likes: string[];
+}
+
+export interface ICommentModel extends IComment, Document {}
+
+const CommentSchema: Schema = new Schema(
   {
-    content: {
-      type: String,
-      required: true,
-    },
+    content: { type: String, required: true },
     author: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
@@ -20,10 +26,11 @@ const commentSchema = new Schema(
     parent: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Comment",
+      default: null,
     },
     likes: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
   },
   { timestamps: true }
 );
 
-export default mongoose.model("Comment", commentSchema);
+export default mongoose.model<ICommentModel>("Comment", CommentSchema);

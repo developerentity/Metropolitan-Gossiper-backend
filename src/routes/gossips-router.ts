@@ -1,17 +1,33 @@
 import express from "express";
-import controller from "../controllers/gossip-controller";
+
+import gossipsController from "../controllers/gossip-controller";
+import commentsController from "../controllers/comments-controller";
 import { basicTokenValidator } from "../middlewares/basic-token-validator";
 
 const router = express.Router();
 
-router.post("/create", basicTokenValidator, controller.createGossip);
-router.get("/get/:gossipId", controller.readGossip);
-router.get("/get/", controller.readAll);
-router.patch("/update/:gossipId", basicTokenValidator, controller.updateGossip);
+router.post("/create", basicTokenValidator, gossipsController.createGossip);
+router.get("/get/:gossipId", gossipsController.readGossip);
+router.get("/get/", gossipsController.readAll);
+router.patch(
+  "/update/:gossipId",
+  basicTokenValidator,
+  gossipsController.updateGossip
+);
 router.delete(
   "/delete/:gossipId",
   basicTokenValidator,
-  controller.deleteGossip
+  gossipsController.deleteGossip
+);
+router.post(
+  "/create/:gossipId/comment",
+  basicTokenValidator,
+  commentsController.createComment
+);
+router.delete(
+  "/delete/comment/:commentId",
+  basicTokenValidator,
+  commentsController.deleteComment
 );
 
 export = router;

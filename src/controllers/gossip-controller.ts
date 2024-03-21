@@ -2,7 +2,6 @@ import { Request, Response } from "express";
 import User from "../models/user-model";
 import Gossip, { IGossipModel } from "../models/gossip-model";
 import { HTTP_STATUSES } from "../http-statuses";
-import Logging from "../library/Logging";
 
 const createGossip = async (req: Request, res: Response) => {
   const { title, content, imageUrl } = req.body;
@@ -92,8 +91,6 @@ const deleteGossip = async (req: Request, res: Response) => {
         .status(HTTP_STATUSES.NOT_FOUND_404)
         .json({ message: "Gossip not found" });
     } else {
-      Logging.warn(gossip.author.toString() )
-      Logging.warn(author.toString())
       if (gossip.author.toString() !== author.toString()) {
         return res
           .status(HTTP_STATUSES.FORBIDDEN_403)
@@ -101,7 +98,7 @@ const deleteGossip = async (req: Request, res: Response) => {
       }
 
       const deletedGossip = await Gossip.findByIdAndDelete(gossipId);
-      const gossipAuthor = await User.findByIdAndUpdate(author, {
+      const clearedAuthor = await User.findByIdAndUpdate(author, {
         $pull: { gossips: gossipId },
       });
 
