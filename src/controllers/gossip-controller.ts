@@ -1,12 +1,13 @@
 import { Request, Response } from "express";
 import mongoose from "mongoose";
-import User from "../models/user-model";
-import Gossip from "../models/gossip-model";
+import User, { IUserModel } from "../models/user-model";
+import Gossip, { IGossipModel } from "../models/gossip-model";
 import { HTTP_STATUSES } from "../http-statuses";
+import Logging from "../library/Logging";
 
 const createGossip = async (req: Request, res: Response) => {
   const { title, content, imageUrl } = req.body;
-  const author = req.user?._id;
+  const author = req.user._id;
 
   if (!author)
     return res
@@ -82,20 +83,33 @@ const updateGossip = async (req: Request, res: Response) => {
 };
 
 const deleteGossip = async (req: Request, res: Response) => {
-  const author = req.user?._id;
-  const gossipId = req.params.gossipId;
+  const author = req.user._id;
+  const { gossipId } = req.params;
 
   try {
-    const deletableGossip = await Gossip.findByIdAndDelete(gossipId);
-    if (deletableGossip) {
-      if (author.toString() !== deletableGossip.author.toString())
+    const gossip: IGossipModel | null = await Gossip.findById(gossipId);
+
+    if (!gossip) {
+      res
+        .status(HTTP_STATUSES.NOT_FOUND_404)
+        .json({ message: "Gossip not found" });
+    } else {
+      Logging.warn(gossip.author.toString() )
+      Logging.warn(author.toString())
+      if (gossip.author.toString() !== author.toString()) {
         return res
           .status(HTTP_STATUSES.FORBIDDEN_403)
-          .json({ error: "Forbidden" });
+          .json({ message: "You are not authorized to delete this gossip" });
+      }
 
-      res.status(HTTP_STATUSES.CREATED_201).json({ message: "Deleted" });
-    } else {
-      res.status(HTTP_STATUSES.NOT_FOUND_404).json({ message: "not found" });
+      const deletedGossip = await Gossip.findByIdAndDelete(gossipId);
+      const gossipAuthor = await User.findByIdAndUpdate(author, {
+        $pull: { gossips: gossipId },
+      });
+
+      res
+        .status(HTTP_STATUSES.OK_200)
+        .json({ message: "Gossip deleted" });
     }
   } catch (error) {
     res.status(HTTP_STATUSES.INTERNAL_SERVER_ERROR_500).json({ error });

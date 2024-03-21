@@ -6,7 +6,7 @@ const router = express.Router();
 
 router.post("/create", basicTokenValidator, controller.createGossip);
 router.get("/get/:gossipId", controller.readGossip);
-router.get("/get/", basicTokenValidator, controller.readAll);
+router.get("/get/", controller.readAll);
 router.patch("/update/:gossipId", basicTokenValidator, controller.updateGossip);
 router.delete(
   "/delete/:gossipId",
