@@ -21,7 +21,7 @@ const createGossip = async (req: Request, res: Response) => {
 
   try {
     const createdGossip = await gossip.save();
-    const gossipAuthor = await User.findByIdAndUpdate(author, {
+    await User.findByIdAndUpdate(author, {
       $push: { gossips: createdGossip._id },
     });
     return res.status(HTTP_STATUSES.CREATED_201).json({ gossip });
@@ -31,13 +31,15 @@ const createGossip = async (req: Request, res: Response) => {
 };
 
 const readGossip = async (req: Request, res: Response) => {
-  const gossipId = req.params.gossipId;
+  const { gossipId } = req.params;
 
   try {
-    const gossip = await Gossip.findById(gossipId);
+    const gossip = await Gossip.findById(gossipId).populate("comments");
     return gossip
       ? res.status(HTTP_STATUSES.OK_200).json({ gossip })
-      : res.status(HTTP_STATUSES.NOT_FOUND_404).json({ message: "not found" });
+      : res
+          .status(HTTP_STATUSES.NOT_FOUND_404)
+          .json({ message: "Gossip not found" });
   } catch (error) {
     return res.status(HTTP_STATUSES.INTERNAL_SERVER_ERROR_500).json({ error });
   }
@@ -53,27 +55,97 @@ const readAll = async (req: Request, res: Response) => {
 };
 
 const updateGossip = async (req: Request, res: Response) => {
+  const author = req.user._id;
+  const { gossipId } = req.params;
+
   try {
-    const author = req.user?._id;
-    const gossipId = req.params.gossipId;
     const gossip = await Gossip.findById(gossipId);
 
-    if (gossip) {
-      if (author.toString() !== gossip.author.toString())
-        return res
-          .status(HTTP_STATUSES.FORBIDDEN_403)
-          .json({ error: "Forbidden" });
-
-      gossip.set(req.body);
-      const updatedGossip = await gossip.save();
-      return res
-        .status(HTTP_STATUSES.CREATED_201)
-        .json({ gossip: updatedGossip });
-    } else {
+    if (!gossip) {
       return res
         .status(HTTP_STATUSES.NOT_FOUND_404)
-        .json({ message: "not found" });
+        .json({ message: "Gossip not found" });
     }
+
+    if (author.toString() !== gossip.author.toString())
+      return res
+        .status(HTTP_STATUSES.FORBIDDEN_403)
+        .json({ error: "Forbidden" });
+
+    gossip.set(req.body);
+    const updatedGossip = await gossip.save();
+
+    return res
+      .status(HTTP_STATUSES.CREATED_201)
+      .json({ gossip: updatedGossip });
+  } catch (error) {
+    return res.status(HTTP_STATUSES.INTERNAL_SERVER_ERROR_500).json({ error });
+  }
+};
+
+const likeGossip = async (req: Request, res: Response) => {
+  const author = req.user._id;
+  const { gossipId } = req.params;
+
+  try {
+    const gossip = await Gossip.findById(gossipId);
+
+    if (!gossip) {
+      return res
+        .status(HTTP_STATUSES.NOT_FOUND_404)
+        .json({ message: "Gossip not found" });
+    }
+
+    if (author.toString() !== gossip.author.toString())
+      return res
+        .status(HTTP_STATUSES.FORBIDDEN_403)
+        .json({ error: "Forbidden" });
+
+    if (gossip.likes.includes(author)) {
+      return res
+        .status(HTTP_STATUSES.BAD_REQUEST_400)
+        .json({ message: "This gossip have already been liked" });
+    }
+
+    await User.findByIdAndUpdate(author, { $push: { likedGossips: gossipId } });
+    await Gossip.findByIdAndUpdate(gossipId, { $push: { likes: author } });
+
+    return res.status(HTTP_STATUSES.OK_200).json({ message: "Liked" });
+  } catch (error) {
+    return res.status(HTTP_STATUSES.INTERNAL_SERVER_ERROR_500).json({ error });
+  }
+};
+
+const unlikeGossip = async (req: Request, res: Response) => {
+  const author = req.user._id;
+  const { gossipId } = req.params;
+
+  try {
+    const gossip = await Gossip.findById(gossipId);
+
+    if (!gossip) {
+      return res
+        .status(HTTP_STATUSES.NOT_FOUND_404)
+        .json({ message: "Gossip not found" });
+    }
+
+    if (author.toString() !== gossip.author.toString())
+      return res
+        .status(HTTP_STATUSES.FORBIDDEN_403)
+        .json({ error: "Forbidden" });
+
+    if (!gossip.likes.includes(author)) {
+      return res
+        .status(HTTP_STATUSES.BAD_REQUEST_400)
+        .json({ message: "This gossip haven't liked yet" });
+    }
+
+    await User.findByIdAndUpdate(author, { $pull: { likedGossips: gossipId } });
+    await Gossip.findByIdAndUpdate(gossipId, { $pull: { likes: author } });
+
+    return res
+      .status(HTTP_STATUSES.OK_200)
+      .json({ message: "This gossip is no more liked" });
   } catch (error) {
     return res.status(HTTP_STATUSES.INTERNAL_SERVER_ERROR_500).json({ error });
   }
@@ -87,27 +159,22 @@ const deleteGossip = async (req: Request, res: Response) => {
     const gossip: IGossipModel | null = await Gossip.findById(gossipId);
 
     if (!gossip) {
-      res
+      return res
         .status(HTTP_STATUSES.NOT_FOUND_404)
         .json({ message: "Gossip not found" });
-    } else {
-      if (gossip.author.toString() !== author.toString()) {
-        return res
-          .status(HTTP_STATUSES.FORBIDDEN_403)
-          .json({ message: "You are not authorized to delete this gossip" });
-      }
-
-      const deletedGossip = await Gossip.findByIdAndDelete(gossipId);
-      const clearedAuthor = await User.findByIdAndUpdate(author, {
-        $pull: { gossips: gossipId },
-      });
-
-      res
-        .status(HTTP_STATUSES.OK_200)
-        .json({ message: "Gossip deleted" });
     }
+    if (gossip.author.toString() !== author.toString()) {
+      return res
+        .status(HTTP_STATUSES.FORBIDDEN_403)
+        .json({ message: "You are not authorized to delete this gossip" });
+    }
+
+    await Gossip.findByIdAndDelete(gossipId);
+    await User.findByIdAndUpdate(author, { $pull: { gossips: gossipId } });
+
+    return res.status(HTTP_STATUSES.OK_200).json({ message: "Gossip deleted" });
   } catch (error) {
-    res.status(HTTP_STATUSES.INTERNAL_SERVER_ERROR_500).json({ error });
+    return res.status(HTTP_STATUSES.INTERNAL_SERVER_ERROR_500).json({ error });
   }
 };
 
@@ -116,5 +183,7 @@ export default {
   readGossip,
   readAll,
   updateGossip,
+  likeGossip,
+  unlikeGossip,
   deleteGossip,
 };

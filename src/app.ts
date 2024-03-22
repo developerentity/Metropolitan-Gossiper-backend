@@ -4,6 +4,7 @@ import cookieParser from "cookie-parser";
 import { usersRouter } from "./routes/users-router";
 import { authRouter } from "./routes/auth-router";
 import gossipsRouter from "./routes/gossips-router";
+import likesRouter from "./routes/likes-router";
 import { loggerMiddleware } from "./middlewares/logger-middleware";
 import { HTTP_STATUSES } from "./http-statuses";
 import { pingRouter } from "./routes/ping-router";
@@ -21,6 +22,7 @@ app.use("/ping", pingRouter);
 app.use("/users", usersRouter);
 app.use("/auth", authRouter);
 app.use("/gossips", gossipsRouter);
+app.use("/likes", likesRouter);
 
 app.use((req, res, next) => {
   res.header("Access-Control-Allow-Origin", "*");
@@ -36,7 +38,7 @@ app.use((req, res, next) => {
 });
 
 app.use((req, res, next) => {
-  const error = new Error("not found");
+  const error = new Error("Rout not found");
   Logging.error(error);
   return res
     .status(HTTP_STATUSES.NOT_FOUND_404)
