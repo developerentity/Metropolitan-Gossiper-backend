@@ -2,7 +2,7 @@ import express from "express";
 import cookieParser from "cookie-parser";
 
 import { usersRouter } from "./routes/users-router";
-import { authRouter } from "./routes/auth-router";
+import authRouter from "./routes/auth-router";
 import gossipsRouter from "./routes/gossips-router";
 import likesRouter from "./routes/likes-router";
 import { loggerMiddleware } from "./middlewares/logger-middleware";
