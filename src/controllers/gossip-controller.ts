@@ -2,7 +2,6 @@ import { Request, Response } from "express";
 import User from "../models/user-model";
 import Gossip, { IGossipModel } from "../models/gossip-model";
 import { HTTP_STATUSES } from "../http-statuses";
-import { populate } from "dotenv";
 
 const createGossip = async (req: Request, res: Response) => {
   const { title, content, imageUrl } = req.body;
