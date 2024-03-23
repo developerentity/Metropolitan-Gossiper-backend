@@ -1,9 +1,7 @@
 import { Request, Router, Response } from "express";
 
-import { jwtService } from "../application/jwt-service";
 import { HTTP_STATUSES } from "../http-statuses";
 import { RequestWithParams, RequestWithQuery } from "../types/request-types";
-import { usersService } from "../domain/users-service";
 import { QueryUsersModel } from "../models/users/query-users-model";
 import {
   UsersListViewModel,
@@ -45,23 +43,3 @@ usersRouter.get(
     }
   }
 );
-usersRouter.post("/signup", async (req: Request, res: Response) => {
-  const { username, email, password } = req.body;
-  const user = await usersService.createUser(username, email, password);
-  if (user) {
-    const maxAge = 3 * 60 * 60;
-    const token = jwtService.createJWT(user, maxAge);
-    res.cookie("token", token, {
-      httpOnly: true,
-      maxAge: maxAge * 1000,
-    });
-    res.status(HTTP_STATUSES.CREATED_201).json({
-      message: "User successfully Registered and Logged in",
-      user: user._id,
-    });
-  } else {
-    res.status(HTTP_STATUSES.UNPROCESSABLE_CONTENT_422).json({
-      message: "Register failed",
-    });
-  }
-});

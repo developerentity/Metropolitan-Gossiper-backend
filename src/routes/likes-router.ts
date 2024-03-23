@@ -11,7 +11,7 @@ router.post(
   basicTokenValidator,
   gossipsController.likeGossip
 );
-router.post(
+router.delete(
   "/gossip/:gossipId/unlike",
   basicTokenValidator,
   gossipsController.unlikeGossip
@@ -21,7 +21,7 @@ router.post(
   basicTokenValidator,
   commentsController.likeComment
 );
-router.post(
+router.delete(
   "/comment/:commentId/unlike",
   basicTokenValidator,
   commentsController.unlikeComment
