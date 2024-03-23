@@ -9,18 +9,12 @@ const createComment = async (req: Request, res: Response) => {
   const { content, parent } = req.body;
   const author = req.user._id;
   const { gossipId } = req.params;
+  let authenticParent = parent || null;
 
   if (!author)
     return res
       .status(HTTP_STATUSES.UNAUTHORIZED_401)
       .json({ error: "Unauthorized" });
-
-  const comment = new Comment({
-    author,
-    content,
-    gossip: gossipId,
-    parent: parent || null,
-  });
 
   try {
     const gossip: IGossipModel | null = await Gossip.findById(gossipId);
@@ -28,6 +22,20 @@ const createComment = async (req: Request, res: Response) => {
       return res
         .status(HTTP_STATUSES.NOT_FOUND_404)
         .json({ message: "Gossip not found" });
+
+    if (parent) {
+      const parentData: ICommentModel | null = await Comment.findById(parent);
+      if (parentData?.parent) {
+        authenticParent = parentData.parent;
+      }
+    }
+
+    const comment = new Comment({
+      author,
+      content,
+      gossip: gossipId,
+      parent: authenticParent,
+    });
 
     const createdComment = await comment.save();
     await Gossip.findByIdAndUpdate(gossip, {

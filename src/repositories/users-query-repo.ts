@@ -1,5 +1,4 @@
 import { UsersListViewModel } from "../models/users/user-view-model";
-import { UserViewModel } from "../models/users/user-view-model";
 import User, { IUserModel } from "../models/user-model";
 
 /**

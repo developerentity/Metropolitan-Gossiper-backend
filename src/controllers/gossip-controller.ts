@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import User from "../models/user-model";
 import Gossip, { IGossipModel } from "../models/gossip-model";
 import { HTTP_STATUSES } from "../http-statuses";
+import { populate } from "dotenv";
 
 const createGossip = async (req: Request, res: Response) => {
   const { title, content, imageUrl } = req.body;
@@ -47,7 +48,7 @@ const readGossip = async (req: Request, res: Response) => {
 
 const readAll = async (req: Request, res: Response) => {
   try {
-    const gossips = await Gossip.find();
+    const gossips = await Gossip.find().populate("comments");
     return res.status(HTTP_STATUSES.OK_200).json({ gossips });
   } catch (error) {
     return res.status(HTTP_STATUSES.INTERNAL_SERVER_ERROR_500).json({ error });
