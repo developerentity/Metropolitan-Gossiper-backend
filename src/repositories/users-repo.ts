@@ -13,6 +13,13 @@ export const usersRepo = {
   async createUser(user: IUser): Promise<IUserModel | null> {
     return await User.create(user);
   },
+  async updateUser(
+    id: ObjectId,
+    updateOps: { about: string }
+  ): Promise<boolean> {
+    const result = await User.updateOne({ _id: id }, { $set: updateOps });
+    return result.modifiedCount === 1;
+  },
   async findUserById(id: ObjectId): Promise<IUserModel | null> {
     return await User.findById(id).populate("gossips");
   },
@@ -20,5 +27,9 @@ export const usersRepo = {
     return await User.findOne({
       $or: [{ email: loginOrEmail }, { username: loginOrEmail }],
     });
+  },
+  async deleteUser(userId: string): Promise<boolean> {
+    const result = await User.findByIdAndDelete(userId);
+    return !!result;
   },
 };

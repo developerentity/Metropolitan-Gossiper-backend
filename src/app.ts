@@ -1,14 +1,14 @@
 import express from "express";
 import cookieParser from "cookie-parser";
 
-import { usersRouter } from "./routes/users-router";
+import { HTTP_STATUSES } from "./http-statuses";
+import { loggerMiddleware } from "./middlewares/logger-middleware";
+import Logging from "./library/Logging";
+import usersRouter from "./routes/users-router";
 import authRouter from "./routes/auth-router";
 import gossipsRouter from "./routes/gossips-router";
 import likesRouter from "./routes/likes-router";
-import { loggerMiddleware } from "./middlewares/logger-middleware";
-import { HTTP_STATUSES } from "./http-statuses";
 import pingRouter from "./routes/ping-router";
-import Logging from "./library/Logging";
 
 export const app = express();
 

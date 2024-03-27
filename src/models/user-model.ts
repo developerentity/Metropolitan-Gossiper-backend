@@ -4,6 +4,7 @@ export interface IUser {
   username: string;
   email: string;
   password: string;
+  about: string;
   role: string;
   gossips: string[];
   likedGossips: string[];
@@ -18,6 +19,7 @@ const UserSchema: Schema = new Schema(
     username: {
       type: String,
       required: true,
+      unique: true,
     },
     email: {
       type: String,
@@ -29,6 +31,7 @@ const UserSchema: Schema = new Schema(
       type: String,
       required: true,
     },
+    about: String,
     role: {
       type: String,
       default: "Basic",

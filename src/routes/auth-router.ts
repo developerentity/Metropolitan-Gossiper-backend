@@ -1,12 +1,12 @@
 import { Router } from "express";
 
-import controller from "../controllers/auth-controller";
-import { loginValidator } from "../validators/loginValidator";
+import authController from "../controllers/auth-controller";
+import usersController from "../controllers/users-controller";
 
 const router = Router();
 
-router.post("/signup", controller.signup);
-router.post("/signin", loginValidator, controller.signin);
-router.get("/signout", controller.signout);
+router.post("/signup", usersController.createUser);
+router.post("/signin", authController.signin);
+router.get("/signout", authController.signout);
 
 export = router;

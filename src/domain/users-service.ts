@@ -9,17 +9,19 @@ import { IUser, IUserModel } from "../models/user-model";
  */
 export const usersService = {
   async createUser(
-    login: string,
+    username: string,
     email: string,
-    password: string
+    password: string,
+    about?: string
   ): Promise<IUserModel | null> {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
     const newUser: IUser = {
-      username: login,
+      username,
       email,
       password: hashedPassword,
+      about: about || "",
       role: "basic",
       comments: [],
       likedComments: [],
@@ -28,6 +30,12 @@ export const usersService = {
     };
 
     return usersRepo.createUser(newUser);
+  },
+  async updateUser(
+    id: ObjectId,
+    updateOps: { about: string }
+  ): Promise<boolean> {
+    return usersRepo.updateUser(id, updateOps);
   },
   async findUserById(id: ObjectId): Promise<IUserModel | null> {
     return usersRepo.findUserById(id);
