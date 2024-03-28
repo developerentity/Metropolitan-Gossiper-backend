@@ -12,9 +12,6 @@ export const checkUserPermission = async (
 ) => {
   const { userId } = req.params;
 
-  Logging.warn(userId)
-  Logging.warn(req.user._id)
-
   try {
     if (req.user._id.toString() !== userId.toString()) {
       return res
