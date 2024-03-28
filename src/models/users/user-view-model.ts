@@ -7,6 +7,7 @@ export type UserViewModel = {
    */
   username: string;
   gossips: IGossip[];
+  about: string;
 };
 
 export type UsersListViewModel = {

@@ -6,16 +6,16 @@ import { checkUserPermission } from "../middlewares/check-user-permission";
 
 const router = express.Router();
 
-router.get("/get/:username", controller.readUser);
+router.get("/get/:userId", controller.readUser);
 router.get("/get/", controller.readAll);
 router.patch(
-  "/update/:username",
+  "/update/:userId",
   basicTokenValidator,
   checkUserPermission,
   controller.updateUser
 );
 router.delete(
-  "/delete/:username",
+  "/delete/:userId",
   basicTokenValidator,
   checkUserPermission,
   controller.deleteUser

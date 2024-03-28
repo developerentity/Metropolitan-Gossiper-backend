@@ -1,3 +1,3 @@
 export type URIParamsUserModel = {
-  username: string;
+  userId: string;
 };

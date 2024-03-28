@@ -18,6 +18,7 @@ import { URIParamsUserModel } from "../models/users/uri-params-user-model";
 import { usersQueryRepo } from "../repositories/users-query-repo";
 import { usersRepo } from "../repositories/users-repo";
 import { UpdateUserModel } from "../models/users/update-user-model";
+import Logging from "../library/Logging";
 
 const createUser = async (
   req: RequestWithBody<CreateUserModel>,
@@ -40,7 +41,7 @@ const createUser = async (
 
     const registeredUser = await usersQueryRepo.findUserById(user._id);
 
-    const token = jwtService.createJWT(user, +MAX_TOKEN_AGE!);
+    const token = await jwtService.createJWT(user, +MAX_TOKEN_AGE!);
     res.cookie("token", token, {
       httpOnly: true,
       maxAge: +MAX_TOKEN_AGE! * 1000,
@@ -51,7 +52,10 @@ const createUser = async (
       user: registeredUser,
     });
   } catch (error) {
-    return res.status(HTTP_STATUSES.INTERNAL_SERVER_ERROR_500).json({ error });
+    Logging.error(error);
+    return res
+      .status(HTTP_STATUSES.INTERNAL_SERVER_ERROR_500)
+      .json({ message: "An error occurred while registering the user." });
   }
 };
 
@@ -59,18 +63,22 @@ const readUser = async (
   req: RequestWithParams<URIParamsUserModel>,
   res: Response
 ) => {
-  const { username } = req.params;
+  const { userId } = req.params;
 
   try {
-    const user = await usersQueryRepo.findByUsername(username);
+    const user = await usersQueryRepo.findUserById(userId);
+    if (!user) {
+      return res
+        .status(HTTP_STATUSES.NOT_FOUND_404)
+        .json({ message: "User not found" });
+    }
 
-    return !user
-      ? res
-          .status(HTTP_STATUSES.NOT_FOUND_404)
-          .json({ message: "User not found" })
-      : res.status(HTTP_STATUSES.OK_200).json({ user });
+    return res.status(HTTP_STATUSES.OK_200).json({ user });
   } catch (error) {
-    return res.status(HTTP_STATUSES.INTERNAL_SERVER_ERROR_500).json({ error });
+    Logging.error(error);
+    return res
+      .status(HTTP_STATUSES.INTERNAL_SERVER_ERROR_500)
+      .json({ message: "An error occurred while reading the user." });
   }
 };
 
@@ -88,7 +96,10 @@ const readAll = async (
 
     res.status(HTTP_STATUSES.OK_200).json(foundUsers);
   } catch (error) {
-    return res.status(HTTP_STATUSES.INTERNAL_SERVER_ERROR_500).json({ error });
+    Logging.error(error);
+    return res
+      .status(HTTP_STATUSES.INTERNAL_SERVER_ERROR_500)
+      .json({ message: "An error occurred while reading users." });
   }
 };
 
@@ -96,27 +107,29 @@ const updateUser = async (
   req: RequestWithParamsAndBody<URIParamsUserModel, UpdateUserModel>,
   res: Response
 ) => {
-  const { username } = req.params;
+  const { userId } = req.params;
   const { about } = req.body;
   const updateOps = {
     // all the other updatable options...
     about,
   };
 
-  try {
-    const userId = await usersRepo.getUserIdByUsername(username);
-    if (!userId) {
-      return res
-        .status(HTTP_STATUSES.NOT_FOUND_404)
-        .json({ message: "User not found" });
-    }
+  if (!userId) {
+    return res
+      .status(HTTP_STATUSES.NOT_FOUND_404)
+      .json({ message: "User not found" });
+  }
 
+  try {
     await usersService.updateUser(userId, updateOps);
     return res
       .status(HTTP_STATUSES.OK_200)
       .json({ message: "User info updated" });
   } catch (error) {
-    return res.status(HTTP_STATUSES.INTERNAL_SERVER_ERROR_500).json({ error });
+    Logging.error(error);
+    return res
+      .status(HTTP_STATUSES.INTERNAL_SERVER_ERROR_500)
+      .json({ message: "An error occurred while updating the user." });
   }
 };
 
@@ -124,20 +137,21 @@ const deleteUser = async (
   req: RequestWithParams<URIParamsUserModel>,
   res: Response
 ) => {
-  const { username } = req.params;
+  const { userId } = req.params;
+  if (!userId) {
+    return res
+      .status(HTTP_STATUSES.NOT_FOUND_404)
+      .json({ message: "User not found" });
+  }
 
   try {
-    const userId = await usersRepo.getUserIdByUsername(username);
-    if (!userId) {
-      return res
-        .status(HTTP_STATUSES.NOT_FOUND_404)
-        .json({ message: "User not found" });
-    }
-
     await usersRepo.deleteUser(userId);
     res.status(HTTP_STATUSES.OK_200).json({ message: "Deleted" });
   } catch (error) {
-    res.status(HTTP_STATUSES.INTERNAL_SERVER_ERROR_500).json({ error });
+    Logging.error(error);
+    return res
+      .status(HTTP_STATUSES.INTERNAL_SERVER_ERROR_500)
+      .json({ message: "An error occurred while deleting the user." });
   }
 };
 

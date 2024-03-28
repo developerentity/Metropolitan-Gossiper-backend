@@ -1,5 +1,4 @@
 import bcrypt from "bcrypt";
-import { ObjectId } from "mongodb";
 import { usersRepo } from "../repositories/users-repo";
 import { IUser, IUserModel } from "../models/user-model";
 
@@ -32,7 +31,7 @@ export const usersService = {
     return usersRepo.createUser(newUser);
   },
   async updateUser(
-    id: ObjectId,
+    id: string,
     updateOps: { about: string }
   ): Promise<boolean> {
     return usersRepo.updateUser(id, updateOps);
