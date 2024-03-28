@@ -7,16 +7,28 @@ import {
   checkCommentIdValidity,
   checkGossipIdValidity,
 } from "../middlewares/check-user-id-validity";
+import { gossipCreateValidator } from "../validators/gossip-create-validator";
+import { validate } from "../middlewares/validate";
+import { gossipUpdateValidator } from "../validators/gossip-update-validator";
+import { commentCreateValidator } from "../validators/comment-create-validator";
 
 const router = express.Router();
 
-router.post("/create", basicTokenValidator, gossipsController.createGossip);
+router.post(
+  "/create",
+  basicTokenValidator,
+  gossipCreateValidator,
+  validate,
+  gossipsController.createGossip
+);
 router.get("/get/:gossipId", gossipsController.readGossip);
 router.get("/get/", gossipsController.readAll);
 router.patch(
   "/update/:gossipId",
   checkGossipIdValidity,
   basicTokenValidator,
+  gossipUpdateValidator,
+  validate,
   gossipsController.updateGossip
 );
 router.delete(
@@ -29,6 +41,8 @@ router.post(
   "/create/:gossipId/comment",
   checkGossipIdValidity,
   basicTokenValidator,
+  commentCreateValidator,
+  validate,
   commentsController.createComment
 );
 router.delete(
