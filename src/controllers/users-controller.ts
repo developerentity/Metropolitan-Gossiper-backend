@@ -1,4 +1,4 @@
-import { NextFunction, Request, Response } from "express";
+import { Response } from "express";
 
 import { HTTP_STATUSES } from "../http-statuses";
 import {
@@ -90,18 +90,18 @@ const readAll = async (
 };
 
 const updateUser = async (
-  req: RequestWithBody<UpdateUserModel>,
+  req: RequestWithParamsAndBody<URIParamsUserModel, UpdateUserModel>,
   res: Response
 ) => {
+  const { username } = req.params;
   const { about } = req.body;
   const updateOps = {
+    // all the other updatable options...
     about,
   };
 
   try {
-    const username = req.user?.username;
     const user = await usersRepo.findByLoginOrEmail(username);
-
     if (!user) {
       return res
         .status(HTTP_STATUSES.NOT_FOUND_404)
@@ -109,7 +109,6 @@ const updateUser = async (
     }
 
     await usersService.updateUser(user._id, updateOps);
-
     return res
       .status(HTTP_STATUSES.OK_200)
       .json({ message: "User info updated" });
@@ -118,12 +117,14 @@ const updateUser = async (
   }
 };
 
-const deleteUser = async (req: Request, res: Response, next: NextFunction) => {
+const deleteUser = async (
+  req: RequestWithParams<URIParamsUserModel>,
+  res: Response
+) => {
   const { username } = req.params;
 
   try {
     const user = await usersRepo.findByLoginOrEmail(username);
-
     if (!user) {
       return res
         .status(HTTP_STATUSES.NOT_FOUND_404)

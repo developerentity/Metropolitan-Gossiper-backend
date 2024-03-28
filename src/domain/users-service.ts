@@ -37,9 +37,6 @@ export const usersService = {
   ): Promise<boolean> {
     return usersRepo.updateUser(id, updateOps);
   },
-  async findUserById(id: ObjectId): Promise<IUserModel | null> {
-    return usersRepo.findUserById(id);
-  },
   async checkCredentials(
     loginOrEmail: string,
     password: string
