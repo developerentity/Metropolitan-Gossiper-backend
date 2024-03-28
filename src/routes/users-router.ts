@@ -4,6 +4,8 @@ import controller from "../controllers/users-controller";
 import { basicTokenValidator } from "../middlewares/basic-token-validator";
 import { checkUserPermission } from "../middlewares/check-user-permission";
 import { checkUserIdValidity } from "../middlewares/check-user-id-validity";
+import { validate } from "../middlewares/validate";
+import { userUpdateValidator } from "../validators/user-update-validator";
 
 const router = express.Router();
 
@@ -14,6 +16,8 @@ router.patch(
   checkUserIdValidity,
   basicTokenValidator,
   checkUserPermission,
+  userUpdateValidator,
+  validate,
   controller.updateUser
 );
 router.delete(
