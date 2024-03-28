@@ -1,5 +1,5 @@
 import * as dotenv from "dotenv";
 dotenv.config();
 
-const { URI, PORT, SECRET_ACCESS_TOKEN } = process.env;
-export { URI, PORT, SECRET_ACCESS_TOKEN };
+const { URI, PORT, SECRET_ACCESS_TOKEN, MAX_TOKEN_AGE } = process.env;
+export { URI, PORT, SECRET_ACCESS_TOKEN, MAX_TOKEN_AGE };

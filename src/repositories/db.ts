@@ -1,31 +1,16 @@
-import { MongoClient, ServerApiVersion } from "mongodb";
+import mongoose from "mongoose";
 
 import { URI } from "../config";
-import { GossipDBType } from "../domain/gossips-service";
-import { UserDBType } from "../domain/users-service";
+import Logging from "../library/Logging";
 
-const client = new MongoClient(URI!, {
-  serverApi: {
-    version: ServerApiVersion.v1,
-    strict: true,
-    deprecationErrors: true,
-  },
-});
+const mongoDB = URI || "mongodb://0.0.0.0:27017";
 
 export async function runDB() {
   try {
-    // Connect the client to the server
-    await client.connect();
-    await client.db("admin").command({ ping: 1 });
-    console.log(
-      "Pinger your deployment. You successfully connected to MongoDB!"
-    );
-  } catch (err) {
-    console.log("Can't connect to DB: " + err);
-    await client.close();
+    await mongoose.connect(mongoDB, { dbName: "metropolitan-gossiper" });
+    Logging.info("Connected to MongoDB successfully!");
+  } catch (error) {
+    Logging.error("Error connecting to MongoDB: ");
+    Logging.error(error);
   }
 }
-
-const db = client.db("metropolitan-gossiper");
-export const productsCollection = db.collection<GossipDBType>("gossips");
-export const usersCollection = db.collection<UserDBType>("users");

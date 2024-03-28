@@ -1,21 +1,18 @@
+import { IGossip } from "../gossip-model";
+import { IUserModel } from "../user-model";
+
 export type UserViewModel = {
-  /**
-   * User ID
-   */
-  id: string;
   /**
    * User name
    */
   username: string;
-  /**
-   * User email
-   */
-  email: string;
+  gossips: IGossip[];
+  about: string;
 };
 
 export type UsersListViewModel = {
   totalItems: number;
   totalPages: number;
   currentPage: number;
-  items: UserViewModel[];
+  items: IUserModel[];
 };

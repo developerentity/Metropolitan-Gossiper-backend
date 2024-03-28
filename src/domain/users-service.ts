@@ -1,6 +1,6 @@
 import bcrypt from "bcrypt";
-import { ObjectId } from "mongodb";
 import { usersRepo } from "../repositories/users-repo";
+import { IUser, IUserModel } from "../models/user-model";
 
 /**
  *  This is a BLL (Business Logic Layer).
@@ -8,31 +8,38 @@ import { usersRepo } from "../repositories/users-repo";
  */
 export const usersService = {
   async createUser(
-    login: string,
+    username: string,
     email: string,
-    password: string
-  ): Promise<UserDBType | null> {
+    password: string,
+    about?: string
+  ): Promise<IUserModel | null> {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    const newUser: UserDBType = {
-      _id: new ObjectId(),
-      username: login,
+    const newUser: IUser = {
+      username,
       email,
       password: hashedPassword,
-      createdAt: new Date(),
+      about: about || "",
       role: "basic",
+      comments: [],
+      likedComments: [],
+      likedGossips: [],
+      gossips: [],
     };
 
     return usersRepo.createUser(newUser);
   },
-  async findUserById(id: ObjectId): Promise<UserDBType | null> {
-    return usersRepo.findUserById(id);
+  async updateUser(
+    id: string,
+    updateOps: { about: string }
+  ): Promise<boolean> {
+    return usersRepo.updateUser(id, updateOps);
   },
   async checkCredentials(
     loginOrEmail: string,
     password: string
-  ): Promise<UserDBType | null> {
+  ): Promise<IUserModel | null> {
     const user = await usersRepo.findByLoginOrEmail(loginOrEmail);
     if (!user) return null;
 
@@ -48,12 +55,4 @@ export const usersService = {
       return null;
     }
   },
-};
-export type UserDBType = {
-  _id: ObjectId;
-  username: string;
-  email: string;
-  password: string;
-  createdAt: Date;
-  role: "admin" | "basic";
 };
