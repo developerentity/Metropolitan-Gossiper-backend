@@ -7,6 +7,10 @@ import User, { IUser, IUserModel } from "../models/user-model";
  * Which is responsible for CUD (CRUD without Read) operations.
  */
 export const usersRepo = {
+  async getUserIdByUsername(username: string): Promise<IUserModel | null> {
+    const user = await User.findOne({ username: username });
+    return user ? user._id : null;
+  },
   async getAllUsers(): Promise<IUserModel[]> {
     return await User.find().sort({ createdAt: -1 });
   },
