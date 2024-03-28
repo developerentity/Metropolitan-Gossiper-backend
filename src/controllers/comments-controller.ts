@@ -1,4 +1,6 @@
 import { Request, Response } from "express";
+
+import Logging from "../library/Logging";
 import User from "../models/user-model";
 import Gossip from "../models/gossip-model";
 import Comment, { ICommentModel } from "../models/comment-model";
@@ -47,7 +49,10 @@ const createComment = async (req: Request, res: Response) => {
 
     return res.sendStatus(HTTP_STATUSES.CREATED_201);
   } catch (error) {
-    return res.status(HTTP_STATUSES.INTERNAL_SERVER_ERROR_500).json({ error });
+    Logging.error(error);
+    return res
+      .status(HTTP_STATUSES.INTERNAL_SERVER_ERROR_500)
+      .json({ message: "An error occurred while trying to create a comment." });
   }
 };
 
@@ -82,7 +87,10 @@ const likeComment = async (req: Request, res: Response) => {
 
     return res.status(HTTP_STATUSES.OK_200).json({ message: "Liked" });
   } catch (error) {
-    return res.status(HTTP_STATUSES.INTERNAL_SERVER_ERROR_500).json({ error });
+    Logging.error(error);
+    return res
+      .status(HTTP_STATUSES.INTERNAL_SERVER_ERROR_500)
+      .json({ message: "An error occurred while trying to like comment." });
   }
 };
 
@@ -119,7 +127,10 @@ const unlikeComment = async (req: Request, res: Response) => {
       .status(HTTP_STATUSES.OK_200)
       .json({ message: "This comment is no more liked" });
   } catch (error) {
-    return res.status(HTTP_STATUSES.INTERNAL_SERVER_ERROR_500).json({ error });
+    Logging.error(error);
+    return res
+      .status(HTTP_STATUSES.INTERNAL_SERVER_ERROR_500)
+      .json({ message: "An error occurred while trying to unlike comment." });
   }
 };
 
@@ -150,7 +161,10 @@ const deleteComment = async (req: Request, res: Response) => {
 
     res.status(HTTP_STATUSES.OK_200).json({ message: "Comment deleted" });
   } catch (error) {
-    res.status(HTTP_STATUSES.INTERNAL_SERVER_ERROR_500).json({ error });
+    Logging.error(error);
+    return res
+      .status(HTTP_STATUSES.INTERNAL_SERVER_ERROR_500)
+      .json({ message: "An error occurred while trying to delete comment." });
   }
 };
 

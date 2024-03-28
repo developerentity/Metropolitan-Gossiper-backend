@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 
+import Logging from "../library/Logging";
 import { usersService } from "../domain/users-service";
 import { jwtService } from "../application/jwt-service";
 import { HTTP_STATUSES } from "../http-statuses";
@@ -28,7 +29,10 @@ const signin = async (req: Request, res: Response) => {
       user: user._id,
     });
   } catch (error) {
-    return res.status(HTTP_STATUSES.INTERNAL_SERVER_ERROR_500).json({ error });
+    Logging.error(error);
+    return res
+      .status(HTTP_STATUSES.INTERNAL_SERVER_ERROR_500)
+      .json({ message: "An error occurred while logging the user." });
   }
 };
 

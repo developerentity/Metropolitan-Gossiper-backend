@@ -1,7 +1,9 @@
 import { Request, Response } from "express";
+
+import { HTTP_STATUSES } from "../http-statuses";
+import Logging from "../library/Logging";
 import User from "../models/user-model";
 import Gossip, { IGossipModel } from "../models/gossip-model";
-import { HTTP_STATUSES } from "../http-statuses";
 
 const createGossip = async (req: Request, res: Response) => {
   const { title, content, imageUrl } = req.body;
@@ -26,7 +28,10 @@ const createGossip = async (req: Request, res: Response) => {
     });
     return res.status(HTTP_STATUSES.CREATED_201).json({ gossip });
   } catch (error) {
-    return res.status(HTTP_STATUSES.INTERNAL_SERVER_ERROR_500).json({ error });
+    Logging.error(error);
+    return res.status(HTTP_STATUSES.INTERNAL_SERVER_ERROR_500).json({
+      message: "An error occurred while trying to create the gossip.",
+    });
   }
 };
 
@@ -41,7 +46,10 @@ const readGossip = async (req: Request, res: Response) => {
           .status(HTTP_STATUSES.NOT_FOUND_404)
           .json({ message: "Gossip not found" });
   } catch (error) {
-    return res.status(HTTP_STATUSES.INTERNAL_SERVER_ERROR_500).json({ error });
+    Logging.error(error);
+    return res
+      .status(HTTP_STATUSES.INTERNAL_SERVER_ERROR_500)
+      .json({ message: "An error occurred while trying to read the gossip." });
   }
 };
 
@@ -50,7 +58,10 @@ const readAll = async (req: Request, res: Response) => {
     const gossips = await Gossip.find().populate("comments");
     return res.status(HTTP_STATUSES.OK_200).json({ gossips });
   } catch (error) {
-    return res.status(HTTP_STATUSES.INTERNAL_SERVER_ERROR_500).json({ error });
+    Logging.error(error);
+    return res
+      .status(HTTP_STATUSES.INTERNAL_SERVER_ERROR_500)
+      .json({ message: "An error occurred while trying to read gossips." });
   }
 };
 
@@ -79,7 +90,10 @@ const updateGossip = async (req: Request, res: Response) => {
       .status(HTTP_STATUSES.CREATED_201)
       .json({ gossip: updatedGossip });
   } catch (error) {
-    return res.status(HTTP_STATUSES.INTERNAL_SERVER_ERROR_500).json({ error });
+    Logging.error(error);
+    return res.status(HTTP_STATUSES.INTERNAL_SERVER_ERROR_500).json({
+      message: "An error occurred while trying to update the gossip.",
+    });
   }
 };
 
@@ -112,7 +126,10 @@ const likeGossip = async (req: Request, res: Response) => {
 
     return res.status(HTTP_STATUSES.OK_200).json({ message: "Liked" });
   } catch (error) {
-    return res.status(HTTP_STATUSES.INTERNAL_SERVER_ERROR_500).json({ error });
+    Logging.error(error);
+    return res
+      .status(HTTP_STATUSES.INTERNAL_SERVER_ERROR_500)
+      .json({ message: "An error occurred while trying to like the gossip." });
   }
 };
 
@@ -147,7 +164,10 @@ const unlikeGossip = async (req: Request, res: Response) => {
       .status(HTTP_STATUSES.OK_200)
       .json({ message: "This gossip is no more liked" });
   } catch (error) {
-    return res.status(HTTP_STATUSES.INTERNAL_SERVER_ERROR_500).json({ error });
+    Logging.error(error);
+    return res.status(HTTP_STATUSES.INTERNAL_SERVER_ERROR_500).json({
+      message: "An error occurred while trying to unlike the gossip.",
+    });
   }
 };
 
@@ -174,7 +194,10 @@ const deleteGossip = async (req: Request, res: Response) => {
 
     return res.status(HTTP_STATUSES.OK_200).json({ message: "Gossip deleted" });
   } catch (error) {
-    return res.status(HTTP_STATUSES.INTERNAL_SERVER_ERROR_500).json({ error });
+    Logging.error(error);
+    return res
+      .status(HTTP_STATUSES.INTERNAL_SERVER_ERROR_500)
+      .json({ message: "An error occurred while trying to delete gossip." });
   }
 };
 
