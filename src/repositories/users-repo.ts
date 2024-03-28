@@ -7,7 +7,7 @@ import User, { IUser, IUserModel } from "../models/user-model";
  * Which is responsible for CUD (CRUD without Read) operations.
  */
 export const usersRepo = {
-  async getUserIdByUsername(username: string): Promise<IUserModel | null> {
+  async getUserIdByUsername(username: string): Promise<ObjectId | null> {
     const user = await User.findOne({ username: username });
     return user ? user._id : null;
   },
@@ -32,7 +32,7 @@ export const usersRepo = {
       $or: [{ email: loginOrEmail }, { username: loginOrEmail }],
     });
   },
-  async deleteUser(userId: string): Promise<boolean> {
+  async deleteUser(userId: ObjectId): Promise<boolean> {
     const result = await User.findByIdAndDelete(userId);
     return !!result;
   },

@@ -36,17 +36,20 @@ const createUser = async (
       return res.status(HTTP_STATUSES.UNPROCESSABLE_CONTENT_422).json({
         message: "Register failed",
       });
-    } else {
-      const token = jwtService.createJWT(user, +MAX_TOKEN_AGE!);
-      res.cookie("token", token, {
-        httpOnly: true,
-        maxAge: +MAX_TOKEN_AGE! * 1000,
-      });
-
-      return res.status(HTTP_STATUSES.CREATED_201).json({
-        message: "User successfully Registered and Logged in",
-      });
     }
+
+    const registeredUser = await usersQueryRepo.findUserById(user._id);
+
+    const token = jwtService.createJWT(user, +MAX_TOKEN_AGE!);
+    res.cookie("token", token, {
+      httpOnly: true,
+      maxAge: +MAX_TOKEN_AGE! * 1000,
+    });
+
+    return res.status(HTTP_STATUSES.CREATED_201).json({
+      message: "User successfully Registered and Logged in",
+      user: registeredUser,
+    });
   } catch (error) {
     return res.status(HTTP_STATUSES.INTERNAL_SERVER_ERROR_500).json({ error });
   }
@@ -101,14 +104,14 @@ const updateUser = async (
   };
 
   try {
-    const user = await usersRepo.findByLoginOrEmail(username);
-    if (!user) {
+    const userId = await usersRepo.getUserIdByUsername(username);
+    if (!userId) {
       return res
         .status(HTTP_STATUSES.NOT_FOUND_404)
         .json({ message: "User not found" });
     }
 
-    await usersService.updateUser(user._id, updateOps);
+    await usersService.updateUser(userId, updateOps);
     return res
       .status(HTTP_STATUSES.OK_200)
       .json({ message: "User info updated" });
@@ -124,14 +127,14 @@ const deleteUser = async (
   const { username } = req.params;
 
   try {
-    const user = await usersRepo.findByLoginOrEmail(username);
-    if (!user) {
+    const userId = await usersRepo.getUserIdByUsername(username);
+    if (!userId) {
       return res
         .status(HTTP_STATUSES.NOT_FOUND_404)
         .json({ message: "User not found" });
     }
 
-    await usersRepo.deleteUser(user._id);
+    await usersRepo.deleteUser(userId);
     res.status(HTTP_STATUSES.OK_200).json({ message: "Deleted" });
   } catch (error) {
     res.status(HTTP_STATUSES.INTERNAL_SERVER_ERROR_500).json({ error });

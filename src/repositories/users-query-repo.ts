@@ -23,7 +23,9 @@ export const usersQueryRepo = {
     const users = await User.find()
       .sort({ [sortField]: sortOrder })
       .skip((page - 1) * limit)
-      .limit(limit);
+      .limit(limit)
+      .populate("gossips")
+      .select(`username about gossips`);
 
     return {
       totalItems: totalUsers,
@@ -33,11 +35,15 @@ export const usersQueryRepo = {
     };
   },
   async findUserById(id: string): Promise<IUserModel | null> {
-    const user = await User.findById(id).populate("gossips");
+    const user = await User.findById(id)
+      .populate("gossips")
+      .select("username about gossips");
     return user;
   },
   async findByUsername(username: string): Promise<IUserModel | null> {
-    const user = await User.findOne({ username: username });
+    const user = await User.findOne({ username: username })
+      .populate("gossips")
+      .select("username about gossips");
     return user;
   },
 };
