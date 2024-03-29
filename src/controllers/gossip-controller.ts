@@ -116,8 +116,7 @@ const likeGossip = async (req: Request, res: Response) => {
         .json({ message: "This gossip have already been liked" });
     }
 
-    await User.findByIdAndUpdate(author, { $push: { likedGossips: gossipId } });
-    await Gossip.findByIdAndUpdate(gossipId, { $push: { likes: author } });
+    await Gossip.likeGossip(author, gossipId);
 
     return res.status(HTTP_STATUSES.OK_200).json({ message: "Liked" });
   } catch (error) {
@@ -152,8 +151,7 @@ const unlikeGossip = async (req: Request, res: Response) => {
         .json({ message: "This gossip haven't liked yet" });
     }
 
-    await User.findByIdAndUpdate(author, { $pull: { likedGossips: gossipId } });
-    await Gossip.findByIdAndUpdate(gossipId, { $pull: { likes: author } });
+    await Gossip.unlikeGossip(author, gossipId);
 
     return res
       .status(HTTP_STATUSES.OK_200)

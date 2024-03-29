@@ -25,7 +25,7 @@ export const usersQueryRepo = {
       .skip((page - 1) * limit)
       .limit(limit)
       .populate("gossips")
-      .select(`username about gossips`);
+      .select(`username about gossips likedGossips`);
 
     return {
       totalItems: totalUsers,
@@ -37,13 +37,13 @@ export const usersQueryRepo = {
   async findUserById(id: string): Promise<IUserModel | null> {
     const user = await User.findById(id)
       .populate("gossips")
-      .select("username about gossips");
+      .select("username about gossips likedGossips");
     return user;
   },
   async findByUsername(username: string): Promise<IUserModel | null> {
     const user = await User.findOne({ username: username })
       .populate("gossips")
-      .select("username about gossips");
+      .select("username about gossips likedGossips");
     return user;
   },
 };

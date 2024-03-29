@@ -14,6 +14,8 @@ export interface IGossipModel extends IGossip, Document {}
 export interface IGossipModelStatic extends Model<IGossipModel> {
   createAndAssociateWithUser(gossip: IGossip): Promise<IGossipModel>;
   deleteAndDissociateFromUser(gossipId: string): Promise<IGossipModel | null>;
+  likeGossip(authorId: string, gossipId: string): Promise<void>;
+  unlikeGossip(authorId: string, gossipId: string): Promise<void>;
 }
 
 const GossipSchema: Schema = new Schema(
@@ -58,6 +60,30 @@ GossipSchema.statics.deleteAndDissociateFromUser = async function (
       { new: true }
     );
   return gossip;
+};
+
+GossipSchema.statics.likeGossip = async function (
+  authorId: string,
+  gossipId: string
+) {
+  await mongoose
+    .model("User")
+    .findByIdAndUpdate(authorId, { $push: { likedGossips: gossipId } });
+  await mongoose
+    .model("Gossip")
+    .findByIdAndUpdate(gossipId, { $push: { likes: authorId } });
+};
+
+GossipSchema.statics.unlikeGossip = async function (
+  authorId: string,
+  gossipId: string
+) {
+  await mongoose
+    .model("User")
+    .findByIdAndUpdate(authorId, { $pull: { likedGossips: gossipId } });
+  await mongoose
+    .model("Gossip")
+    .findByIdAndUpdate(gossipId, { $pull: { likes: authorId } });
 };
 
 export default mongoose.model<IGossipModel, IGossipModelStatic>(
