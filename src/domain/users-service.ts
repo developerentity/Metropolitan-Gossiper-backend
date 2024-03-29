@@ -30,10 +30,7 @@ export const usersService = {
 
     return usersRepo.createUser(newUser);
   },
-  async updateUser(
-    id: string,
-    updateOps: { about: string }
-  ): Promise<boolean> {
+  async updateUser(id: string, updateOps: { about: string }): Promise<boolean> {
     return usersRepo.updateUser(id, updateOps);
   },
   async checkCredentials(

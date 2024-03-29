@@ -1,4 +1,4 @@
-import mongoose, { Document, Schema } from "mongoose";
+import mongoose, { Document, Schema, Model } from "mongoose";
 
 export interface IGossip {
   title: string;
@@ -10,6 +10,11 @@ export interface IGossip {
 }
 
 export interface IGossipModel extends IGossip, Document {}
+
+export interface IGossipModelStatic extends Model<IGossipModel> {
+  createAndAssociateWithUser(gossip: IGossip): Promise<IGossipModel>;
+  deleteAndDissociateFromUser(gossipId: string): Promise<IGossipModel | null>;
+}
 
 const GossipSchema: Schema = new Schema(
   {
@@ -27,4 +32,35 @@ const GossipSchema: Schema = new Schema(
   { timestamps: true }
 );
 
-export default mongoose.model<IGossipModel>("Gossip", GossipSchema);
+GossipSchema.statics.createAndAssociateWithUser = async function (
+  gossipData: IGossip
+) {
+  const gossip = await this.create(gossipData);
+  await mongoose
+    .model("User")
+    .findByIdAndUpdate(
+      gossip.author,
+      { $push: { gossips: gossip._id } },
+      { new: true }
+    );
+  return gossip;
+};
+
+GossipSchema.statics.deleteAndDissociateFromUser = async function (
+  gossipId: string
+) {
+  const gossip = await this.findByIdAndDelete(gossipId);
+  await mongoose
+    .model("User")
+    .findByIdAndUpdate(
+      gossip.author,
+      { $pull: { gossips: gossipId } },
+      { new: true }
+    );
+  return gossip;
+};
+
+export default mongoose.model<IGossipModel, IGossipModelStatic>(
+  "Gossip",
+  GossipSchema
+);

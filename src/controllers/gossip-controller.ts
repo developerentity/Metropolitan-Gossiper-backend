@@ -3,30 +3,25 @@ import { Request, Response } from "express";
 import { HTTP_STATUSES } from "../http-statuses";
 import Logging from "../library/Logging";
 import User from "../models/user-model";
-import Gossip, { IGossipModel } from "../models/gossip-model";
+import Gossip, { IGossip, IGossipModel } from "../models/gossip-model";
 
 const createGossip = async (req: Request, res: Response) => {
   const { title, content, imageUrl } = req.body;
   const author = req.user._id;
 
-  if (!author)
-    return res
-      .status(HTTP_STATUSES.UNAUTHORIZED_401)
-      .json({ error: "Unauthorized" });
-
-  const gossip = new Gossip({
-    title,
-    content,
-    imageUrl: imageUrl,
-    author,
-  });
-
   try {
-    const createdGossip = await gossip.save();
-    await User.findByIdAndUpdate(author, {
-      $push: { gossips: createdGossip._id },
-    });
-    return res.status(HTTP_STATUSES.CREATED_201).json({ gossip });
+    const gossip: IGossip = {
+      title,
+      content,
+      imageUrl: imageUrl || "",
+      author,
+      comments: [],
+      likes: [],
+    };
+
+    const createdGossip = await Gossip.createAndAssociateWithUser(gossip);
+
+    return res.status(HTTP_STATUSES.CREATED_201).json({ createdGossip });
   } catch (error) {
     Logging.error(error);
     return res.status(HTTP_STATUSES.INTERNAL_SERVER_ERROR_500).json({
@@ -183,16 +178,17 @@ const deleteGossip = async (req: Request, res: Response) => {
         .status(HTTP_STATUSES.NOT_FOUND_404)
         .json({ message: "Gossip not found" });
     }
+
     if (gossip.author.toString() !== author.toString()) {
       return res
         .status(HTTP_STATUSES.FORBIDDEN_403)
         .json({ message: "You are not authorized to delete this gossip" });
     }
 
-    await Gossip.findByIdAndDelete(gossipId);
-    await User.findByIdAndUpdate(author, { $pull: { gossips: gossipId } });
-
-    return res.status(HTTP_STATUSES.OK_200).json({ message: "Gossip deleted" });
+    const deletedGossip = await Gossip.deleteAndDissociateFromUser(gossipId);
+    return res
+      .status(HTTP_STATUSES.OK_200)
+      .json({ message: "Gossip deleted", gossip: deletedGossip });
   } catch (error) {
     Logging.error(error);
     return res
