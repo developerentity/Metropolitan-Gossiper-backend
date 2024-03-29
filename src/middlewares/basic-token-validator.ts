@@ -14,21 +14,21 @@ export async function basicTokenValidator(
     if (!token) {
       return res
         .status(HTTP_STATUSES.UNAUTHORIZED_401)
-        .json({ error: "Unauthorized 1" });
+        .json({ error: "Unauthorized" });
     }
 
     const userId = await jwtService.getUserIdByToken(token);
     if (!userId) {
       return res
         .status(HTTP_STATUSES.UNAUTHORIZED_401)
-        .json({ error: "Unauthorized 2" });
+        .json({ error: "Unauthorized" });
     }
 
     const userData = await usersRepo.findUserById(userId);
     if (!userData) {
       return res
         .status(HTTP_STATUSES.UNAUTHORIZED_401)
-        .json({ error: "Unauthorized 3" });
+        .json({ error: "Unauthorized" });
     }
 
     req.user = userData;

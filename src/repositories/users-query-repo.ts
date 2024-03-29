@@ -25,7 +25,7 @@ export const usersQueryRepo = {
       .skip((page - 1) * limit)
       .limit(limit)
       .populate("gossips")
-      .select(`username about gossips likedGossips`);
+      .select(`username about gossips comments likedGossips likedComments`);
 
     return {
       totalItems: totalUsers,

@@ -2,7 +2,6 @@ import { Request, Response } from "express";
 
 import { HTTP_STATUSES } from "../http-statuses";
 import Logging from "../library/Logging";
-import User from "../models/user-model";
 import Gossip, { IGossip, IGossipModel } from "../models/gossip-model";
 
 const createGossip = async (req: Request, res: Response) => {
@@ -105,11 +104,6 @@ const likeGossip = async (req: Request, res: Response) => {
         .json({ message: "Gossip not found" });
     }
 
-    if (author.toString() !== gossip.author.toString())
-      return res
-        .status(HTTP_STATUSES.FORBIDDEN_403)
-        .json({ error: "Forbidden" });
-
     if (gossip.likes.includes(author)) {
       return res
         .status(HTTP_STATUSES.BAD_REQUEST_400)
@@ -139,11 +133,6 @@ const unlikeGossip = async (req: Request, res: Response) => {
         .status(HTTP_STATUSES.NOT_FOUND_404)
         .json({ message: "Gossip not found" });
     }
-
-    if (author.toString() !== gossip.author.toString())
-      return res
-        .status(HTTP_STATUSES.FORBIDDEN_403)
-        .json({ error: "Forbidden" });
 
     if (!gossip.likes.includes(author)) {
       return res

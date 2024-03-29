@@ -1,9 +1,8 @@
 import { Request, Response } from "express";
 
 import Logging from "../library/Logging";
-import User from "../models/user-model";
 import Gossip from "../models/gossip-model";
-import Comment, { ICommentModel } from "../models/comment-model";
+import Comment, { IComment, ICommentModel } from "../models/comment-model";
 import { IGossipModel } from "../models/gossip-model";
 import { HTTP_STATUSES } from "../http-statuses";
 
@@ -32,22 +31,19 @@ const createComment = async (req: Request, res: Response) => {
       }
     }
 
-    const comment = new Comment({
+    const comment: IComment = {
       author,
       content,
       gossip: gossipId,
       parent: authenticParent,
-    });
+      likes: [],
+    };
 
-    const createdComment = await comment.save();
-    await Gossip.findByIdAndUpdate(gossip, {
-      $push: { comments: createdComment._id },
-    });
-    await User.findByIdAndUpdate(author, {
-      $push: { comments: createdComment._id },
-    });
+    const createdComment = await Comment.createAndAssociateWithUserAndGossip(
+      comment
+    );
 
-    return res.sendStatus(HTTP_STATUSES.CREATED_201);
+    return res.status(HTTP_STATUSES.CREATED_201).json({ createdComment });
   } catch (error) {
     Logging.error(error);
     return res
@@ -69,21 +65,13 @@ const likeComment = async (req: Request, res: Response) => {
         .json({ message: "Comment not found" });
     }
 
-    if (author.toString() !== comment.author.toString())
-      return res
-        .status(HTTP_STATUSES.FORBIDDEN_403)
-        .json({ error: "Forbidden" });
-
     if (comment.likes.includes(author)) {
       return res
         .status(HTTP_STATUSES.BAD_REQUEST_400)
         .json({ message: "This comment have already been liked" });
     }
 
-    await User.findByIdAndUpdate(author, {
-      $push: { likedComments: commentId },
-    });
-    await Comment.findByIdAndUpdate(commentId, { $push: { likes: author } });
+    await Comment.likeComment(author, commentId);
 
     return res.status(HTTP_STATUSES.OK_200).json({ message: "Liked" });
   } catch (error) {
@@ -107,21 +95,13 @@ const unlikeComment = async (req: Request, res: Response) => {
         .json({ message: "Comment not found" });
     }
 
-    if (author.toString() !== comment.author.toString())
-      return res
-        .status(HTTP_STATUSES.FORBIDDEN_403)
-        .json({ error: "Forbidden" });
-
     if (!comment.likes.includes(author)) {
       return res
         .status(HTTP_STATUSES.BAD_REQUEST_400)
         .json({ message: "This comment haven't liked yet" });
     }
 
-    await User.findByIdAndUpdate(author, {
-      $pull: { likedComments: commentId },
-    });
-    await Comment.findByIdAndUpdate(commentId, { $pull: { likes: author } });
+    await Comment.unlikeComment(author, commentId);
 
     return res
       .status(HTTP_STATUSES.OK_200)
@@ -130,7 +110,7 @@ const unlikeComment = async (req: Request, res: Response) => {
     Logging.error(error);
     return res
       .status(HTTP_STATUSES.INTERNAL_SERVER_ERROR_500)
-      .json({ message: "An error occurred while trying to unlike comment." });
+      .json({ message: "An error occurred while trying to unlike comment. " });
   }
 };
 
@@ -153,13 +133,13 @@ const deleteComment = async (req: Request, res: Response) => {
         .json({ message: "You are not authorized to delete this comment" });
     }
 
-    await Comment.findByIdAndDelete(commentId);
-    await Gossip.findByIdAndUpdate(comment.gossip, {
-      $pull: { comments: commentId },
-    });
-    await User.findByIdAndUpdate(author, { $pull: { comments: commentId } });
+    const deletedComment = await Comment.deleteAndDissociateFromUserAndGossip(
+      commentId
+    );
 
-    res.status(HTTP_STATUSES.OK_200).json({ message: "Comment deleted" });
+    return res
+      .status(HTTP_STATUSES.OK_200)
+      .json({ message: "Comment deleted", comment: deletedComment });
   } catch (error) {
     Logging.error(error);
     return res

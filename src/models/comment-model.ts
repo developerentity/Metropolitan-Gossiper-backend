@@ -1,4 +1,4 @@
-import mongoose, { Document, Schema } from "mongoose";
+import mongoose, { Document, Model, Schema } from "mongoose";
 
 export interface IComment {
   content: string;
@@ -9,6 +9,17 @@ export interface IComment {
 }
 
 export interface ICommentModel extends IComment, Document {}
+
+export interface ICommentModelStatic extends Model<ICommentModel> {
+  createAndAssociateWithUserAndGossip(
+    comment: IComment
+  ): Promise<ICommentModel>;
+  deleteAndDissociateFromUserAndGossip(
+    comment: string
+  ): Promise<ICommentModel | null>;
+  likeComment(authorId: string, commentId: string): Promise<void>;
+  unlikeComment(authorId: string, commentId: string): Promise<void>;
+}
 
 const CommentSchema: Schema = new Schema(
   {
@@ -33,4 +44,57 @@ const CommentSchema: Schema = new Schema(
   { timestamps: true }
 );
 
-export default mongoose.model<ICommentModel>("Comment", CommentSchema);
+CommentSchema.statics.createAndAssociateWithUserAndGossip = async function (
+  commentData: IComment
+) {
+  const comment = await this.create(commentData);
+  await mongoose
+    .model("User")
+    .findByIdAndUpdate(comment.author, { $push: { comments: comment._id } });
+  await mongoose
+    .model("Gossip")
+    .findByIdAndUpdate(comment.gossip, { $push: { comments: comment._id } });
+  return comment;
+};
+
+CommentSchema.statics.deleteAndDissociateFromUserAndGossip = async function (
+  commentId: string
+) {
+  const comment = await this.findByIdAndDelete(commentId);
+  await mongoose
+    .model("User")
+    .findByIdAndUpdate(comment.author, { $pull: { comments: commentId } });
+  await mongoose
+    .model("Gossip")
+    .findByIdAndUpdate(comment.gossip, { $pull: { comments: commentId } });
+  return comment;
+};
+
+CommentSchema.statics.likeComment = async function (
+  authorId: string,
+  commentId: string
+) {
+  await mongoose
+    .model("User")
+    .findByIdAndUpdate(authorId, { $push: { likedComments: commentId } });
+  await mongoose
+    .model("Comment")
+    .findByIdAndUpdate(commentId, { $push: { likes: authorId } });
+};
+
+CommentSchema.statics.unlikeComment = async function (
+  authorId: string,
+  commentId: string
+) {
+  await mongoose
+    .model("User")
+    .findByIdAndUpdate(authorId, { $pull: { likedComments: commentId } });
+  await mongoose
+    .model("Comment")
+    .findByIdAndUpdate(commentId, { $pull: { likes: authorId } });
+};
+
+export default mongoose.model<ICommentModel, ICommentModelStatic>(
+  "Comment",
+  CommentSchema
+);
