@@ -1,16 +1,15 @@
 import { Request, Response } from "express";
 
 import Logging from "../library/Logging";
-import Gossip from "../models/gossip-model";
-import Comment, { IComment, ICommentModel } from "../models/comment-model";
-import { IGossipModel } from "../models/gossip-model";
 import { HTTP_STATUSES } from "../http-statuses";
+import { gossipsRepo } from "../repositories/gossips-repo";
+import { commentsService } from "../domain/comments-service";
+import { commentsRepo } from "../repositories/comments-repo";
 
 const createComment = async (req: Request, res: Response) => {
   const { content, parent } = req.body;
   const author = req.user._id;
   const { gossipId } = req.params;
-  let authenticParent = parent || null;
 
   if (!author)
     return res
@@ -18,29 +17,17 @@ const createComment = async (req: Request, res: Response) => {
       .json({ error: "Unauthorized" });
 
   try {
-    const gossip: IGossipModel | null = await Gossip.findById(gossipId);
+    const gossip = await gossipsRepo.findGossipById(gossipId);
     if (!gossip)
       return res
         .status(HTTP_STATUSES.NOT_FOUND_404)
         .json({ message: "Gossip not found" });
 
-    if (parent) {
-      const parentData: ICommentModel | null = await Comment.findById(parent);
-      if (parentData?.parent) {
-        authenticParent = parentData.parent;
-      }
-    }
-
-    const comment: IComment = {
+    const createdComment = await commentsService.createComment(
       author,
+      gossipId,
       content,
-      gossip: gossipId,
-      parent: authenticParent,
-      likes: [],
-    };
-
-    const createdComment = await Comment.createAndAssociateWithUserAndGossip(
-      comment
+      parent
     );
 
     return res.status(HTTP_STATUSES.CREATED_201).json({ createdComment });
@@ -57,7 +44,7 @@ const likeComment = async (req: Request, res: Response) => {
   const { commentId } = req.params;
 
   try {
-    const comment: ICommentModel | null = await Comment.findById(commentId);
+    const comment = await commentsRepo.findCommentById(commentId);
 
     if (!comment) {
       return res
@@ -71,7 +58,7 @@ const likeComment = async (req: Request, res: Response) => {
         .json({ message: "This comment have already been liked" });
     }
 
-    await Comment.likeComment(author, commentId);
+    await commentsService.likeComment(author, commentId);
 
     return res.status(HTTP_STATUSES.OK_200).json({ message: "Liked" });
   } catch (error) {
@@ -87,7 +74,7 @@ const unlikeComment = async (req: Request, res: Response) => {
   const { commentId } = req.params;
 
   try {
-    const comment: ICommentModel | null = await Comment.findById(commentId);
+    const comment = await commentsRepo.findCommentById(commentId);
 
     if (!comment) {
       return res
@@ -101,7 +88,7 @@ const unlikeComment = async (req: Request, res: Response) => {
         .json({ message: "This comment haven't liked yet" });
     }
 
-    await Comment.unlikeComment(author, commentId);
+    await commentsService.unlikeComment(author, commentId);
 
     return res
       .status(HTTP_STATUSES.OK_200)
@@ -119,7 +106,7 @@ const deleteComment = async (req: Request, res: Response) => {
   const { commentId } = req.params;
 
   try {
-    const comment: ICommentModel | null = await Comment.findById(commentId);
+    const comment = await commentsRepo.findCommentById(commentId);
 
     if (!comment) {
       return res
@@ -133,9 +120,7 @@ const deleteComment = async (req: Request, res: Response) => {
         .json({ message: "You are not authorized to delete this comment" });
     }
 
-    const deletedComment = await Comment.deleteAndDissociateFromUserAndGossip(
-      commentId
-    );
+    const deletedComment = await commentsService.deleteComment(commentId);
 
     return res
       .status(HTTP_STATUSES.OK_200)
