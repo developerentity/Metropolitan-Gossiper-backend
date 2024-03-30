@@ -2,31 +2,26 @@ import { Request, Response } from "express";
 
 import { HTTP_STATUSES } from "../http-statuses";
 import Logging from "../library/Logging";
-import User from "../models/user-model";
-import Gossip, { IGossipModel } from "../models/gossip-model";
+import { gossipsService } from "../domain/gossips-service";
+import { gossipsQueryRepo } from "../repositories/gossips-query-repo";
+import { gossipsRepo } from "../repositories/gossips-repo";
+import { RequestWithParamsAndBody } from "../types/request-types";
+import { UpdateGossipModel } from "../models/gossips/update-gossip-model";
+import { URIParamsGossipModel } from "../models/gossips/uri-params-gossip-model";
 
 const createGossip = async (req: Request, res: Response) => {
   const { title, content, imageUrl } = req.body;
   const author = req.user._id;
 
-  if (!author)
-    return res
-      .status(HTTP_STATUSES.UNAUTHORIZED_401)
-      .json({ error: "Unauthorized" });
-
-  const gossip = new Gossip({
-    title,
-    content,
-    imageUrl: imageUrl,
-    author,
-  });
-
   try {
-    const createdGossip = await gossip.save();
-    await User.findByIdAndUpdate(author, {
-      $push: { gossips: createdGossip._id },
-    });
-    return res.status(HTTP_STATUSES.CREATED_201).json({ gossip });
+    const createdGossip = await gossipsService.createGossip(
+      author,
+      title,
+      content,
+      imageUrl
+    );
+
+    return res.status(HTTP_STATUSES.CREATED_201).json({ createdGossip });
   } catch (error) {
     Logging.error(error);
     return res.status(HTTP_STATUSES.INTERNAL_SERVER_ERROR_500).json({
@@ -39,12 +34,15 @@ const readGossip = async (req: Request, res: Response) => {
   const { gossipId } = req.params;
 
   try {
-    const gossip = await Gossip.findById(gossipId).populate("comments");
-    return gossip
-      ? res.status(HTTP_STATUSES.OK_200).json({ gossip })
-      : res
-          .status(HTTP_STATUSES.NOT_FOUND_404)
-          .json({ message: "Gossip not found" });
+    const gossip = await gossipsQueryRepo.findGossipById(gossipId);
+
+    if (!gossip) {
+      return res
+        .status(HTTP_STATUSES.NOT_FOUND_404)
+        .json({ message: "Gossip not found" });
+    }
+
+    return res.status(HTTP_STATUSES.OK_200).json({ gossip });
   } catch (error) {
     Logging.error(error);
     return res
@@ -55,7 +53,7 @@ const readGossip = async (req: Request, res: Response) => {
 
 const readAll = async (req: Request, res: Response) => {
   try {
-    const gossips = await Gossip.find().populate("comments");
+    const gossips = await gossipsQueryRepo.findAllGossips();
     return res.status(HTTP_STATUSES.OK_200).json({ gossips });
   } catch (error) {
     Logging.error(error);
@@ -65,12 +63,15 @@ const readAll = async (req: Request, res: Response) => {
   }
 };
 
-const updateGossip = async (req: Request, res: Response) => {
+const updateGossip = async (
+  req: RequestWithParamsAndBody<URIParamsGossipModel, UpdateGossipModel>,
+  res: Response
+) => {
   const author = req.user._id;
   const { gossipId } = req.params;
 
   try {
-    const gossip = await Gossip.findById(gossipId);
+    const gossip = await gossipsRepo.findGossipById(gossipId);
 
     if (!gossip) {
       return res
@@ -83,8 +84,7 @@ const updateGossip = async (req: Request, res: Response) => {
         .status(HTTP_STATUSES.FORBIDDEN_403)
         .json({ error: "Forbidden" });
 
-    gossip.set(req.body);
-    const updatedGossip = await gossip.save();
+    const updatedGossip = await gossipsService.updateGossip(gossipId, req.body);
 
     return res
       .status(HTTP_STATUSES.CREATED_201)
@@ -102,7 +102,7 @@ const likeGossip = async (req: Request, res: Response) => {
   const { gossipId } = req.params;
 
   try {
-    const gossip = await Gossip.findById(gossipId);
+    const gossip = await gossipsRepo.findGossipById(gossipId);
 
     if (!gossip) {
       return res
@@ -110,19 +110,13 @@ const likeGossip = async (req: Request, res: Response) => {
         .json({ message: "Gossip not found" });
     }
 
-    if (author.toString() !== gossip.author.toString())
-      return res
-        .status(HTTP_STATUSES.FORBIDDEN_403)
-        .json({ error: "Forbidden" });
-
     if (gossip.likes.includes(author)) {
       return res
         .status(HTTP_STATUSES.BAD_REQUEST_400)
         .json({ message: "This gossip have already been liked" });
     }
 
-    await User.findByIdAndUpdate(author, { $push: { likedGossips: gossipId } });
-    await Gossip.findByIdAndUpdate(gossipId, { $push: { likes: author } });
+    await gossipsService.likeGossip(author, gossipId);
 
     return res.status(HTTP_STATUSES.OK_200).json({ message: "Liked" });
   } catch (error) {
@@ -138,18 +132,12 @@ const unlikeGossip = async (req: Request, res: Response) => {
   const { gossipId } = req.params;
 
   try {
-    const gossip = await Gossip.findById(gossipId);
-
+    const gossip = await gossipsRepo.findGossipById(gossipId);
     if (!gossip) {
       return res
         .status(HTTP_STATUSES.NOT_FOUND_404)
         .json({ message: "Gossip not found" });
     }
-
-    if (author.toString() !== gossip.author.toString())
-      return res
-        .status(HTTP_STATUSES.FORBIDDEN_403)
-        .json({ error: "Forbidden" });
 
     if (!gossip.likes.includes(author)) {
       return res
@@ -157,8 +145,7 @@ const unlikeGossip = async (req: Request, res: Response) => {
         .json({ message: "This gossip haven't liked yet" });
     }
 
-    await User.findByIdAndUpdate(author, { $pull: { likedGossips: gossipId } });
-    await Gossip.findByIdAndUpdate(gossipId, { $pull: { likes: author } });
+    await gossipsService.unlikeGossip(author, gossipId);
 
     return res
       .status(HTTP_STATUSES.OK_200)
@@ -176,23 +163,24 @@ const deleteGossip = async (req: Request, res: Response) => {
   const { gossipId } = req.params;
 
   try {
-    const gossip: IGossipModel | null = await Gossip.findById(gossipId);
+    const gossip = await gossipsRepo.findGossipById(gossipId);
 
     if (!gossip) {
       return res
         .status(HTTP_STATUSES.NOT_FOUND_404)
         .json({ message: "Gossip not found" });
     }
+
     if (gossip.author.toString() !== author.toString()) {
       return res
         .status(HTTP_STATUSES.FORBIDDEN_403)
         .json({ message: "You are not authorized to delete this gossip" });
     }
 
-    await Gossip.findByIdAndDelete(gossipId);
-    await User.findByIdAndUpdate(author, { $pull: { gossips: gossipId } });
-
-    return res.status(HTTP_STATUSES.OK_200).json({ message: "Gossip deleted" });
+    const deletedGossip = await gossipsService.deleteGossip(gossipId);
+    return res
+      .status(HTTP_STATUSES.OK_200)
+      .json({ message: "Gossip deleted", gossip: deletedGossip });
   } catch (error) {
     Logging.error(error);
     return res

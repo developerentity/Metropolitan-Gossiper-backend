@@ -29,7 +29,5 @@ const checkIdValidity = (idType: IdType): RequestHandler => {
 };
 
 export const checkUserIdValidity = checkIdValidity("userId");
-
 export const checkGossipIdValidity = checkIdValidity("gossipId");
-
 export const checkCommentIdValidity = checkIdValidity("commentId");
