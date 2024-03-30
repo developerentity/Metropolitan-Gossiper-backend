@@ -1,11 +1,11 @@
 import { IGossip, IGossipModel } from "../models/gossip-model";
-import { gossipRepo } from "../repositories/gossip-repo";
+import { gossipsRepo } from "../repositories/gossips-repo";
 
 /**
  *  This is a BLL (Business Logic Layer).
  *  Which most commonly responsible for CUD operations (CRUD without Read).
  */
-export const gossipService = {
+export const gossipsService = {
   async createGossip(
     author: string,
     title: string,
@@ -21,7 +21,7 @@ export const gossipService = {
       likes: [],
     };
 
-    return gossipRepo.createAndAssociateWithUser(gossip);
+    return gossipsRepo.createAndAssociateWithUser(gossip);
   },
   async updateGossip(
     id: string,
@@ -31,15 +31,15 @@ export const gossipService = {
       content: updateOps.content,
       imageUrl: updateOps.imageUrl,
     };
-    return gossipRepo.updateGossip(id, processedOps);
+    return gossipsRepo.updateGossip(id, processedOps);
   },
   async likeGossip(author: string, gossipId: string): Promise<void> {
-    return gossipRepo.likeGossip(author, gossipId);
+    return gossipsRepo.likeGossip(author, gossipId);
   },
   async unlikeGossip(author: string, gossipId: string): Promise<void> {
-    return gossipRepo.unlikeGossip(author, gossipId);
+    return gossipsRepo.unlikeGossip(author, gossipId);
   },
   async deleteGossip(gossipId: string): Promise<IGossipModel | null> {
-    return gossipRepo.deleteAndDissociateFromUser(gossipId);
+    return gossipsRepo.deleteAndDissociateFromUser(gossipId);
   },
 };

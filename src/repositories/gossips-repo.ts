@@ -4,7 +4,7 @@ import Gossip, { IGossip, IGossipModel } from "../models/gossip-model";
  * This is the DAL (Data Access Layer).
  * Which is responsible for CUD (CRUD without Read) operations.
  */
-export const gossipRepo = {
+export const gossipsRepo = {
   async findGossipById(gossipId: string): Promise<IGossipModel | null> {
     return await Gossip.findById(gossipId);
   },

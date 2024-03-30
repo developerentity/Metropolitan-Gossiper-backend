@@ -2,9 +2,9 @@ import { Request, Response } from "express";
 
 import { HTTP_STATUSES } from "../http-statuses";
 import Logging from "../library/Logging";
-import { gossipService } from "../domain/gossip-service";
-import { gossipQueryRepo } from "../repositories/gossip-qury-repo";
-import { gossipRepo } from "../repositories/gossip-repo";
+import { gossipsService } from "../domain/gossips-service";
+import { gossipsQueryRepo } from "../repositories/gossips-query-repo";
+import { gossipsRepo } from "../repositories/gossips-repo";
 import { RequestWithParamsAndBody } from "../types/request-types";
 import { UpdateGossipModel } from "../models/gossips/update-gossip-model";
 import { URIParamsGossipModel } from "../models/gossips/uri-params-gossip-model";
@@ -14,7 +14,7 @@ const createGossip = async (req: Request, res: Response) => {
   const author = req.user._id;
 
   try {
-    const createdGossip = await gossipService.createGossip(
+    const createdGossip = await gossipsService.createGossip(
       author,
       title,
       content,
@@ -34,7 +34,7 @@ const readGossip = async (req: Request, res: Response) => {
   const { gossipId } = req.params;
 
   try {
-    const gossip = await gossipQueryRepo.findGossipById(gossipId);
+    const gossip = await gossipsQueryRepo.findGossipById(gossipId);
 
     if (!gossip) {
       return res
@@ -53,7 +53,7 @@ const readGossip = async (req: Request, res: Response) => {
 
 const readAll = async (req: Request, res: Response) => {
   try {
-    const gossips = await gossipQueryRepo.findAllGossips();
+    const gossips = await gossipsQueryRepo.findAllGossips();
     return res.status(HTTP_STATUSES.OK_200).json({ gossips });
   } catch (error) {
     Logging.error(error);
@@ -71,7 +71,7 @@ const updateGossip = async (
   const { gossipId } = req.params;
 
   try {
-    const gossip = await gossipRepo.findGossipById(gossipId);
+    const gossip = await gossipsRepo.findGossipById(gossipId);
 
     if (!gossip) {
       return res
@@ -84,7 +84,7 @@ const updateGossip = async (
         .status(HTTP_STATUSES.FORBIDDEN_403)
         .json({ error: "Forbidden" });
 
-    const updatedGossip = await gossipService.updateGossip(gossipId, req.body);
+    const updatedGossip = await gossipsService.updateGossip(gossipId, req.body);
 
     return res
       .status(HTTP_STATUSES.CREATED_201)
@@ -102,7 +102,7 @@ const likeGossip = async (req: Request, res: Response) => {
   const { gossipId } = req.params;
 
   try {
-    const gossip = await gossipRepo.findGossipById(gossipId);
+    const gossip = await gossipsRepo.findGossipById(gossipId);
 
     if (!gossip) {
       return res
@@ -116,7 +116,7 @@ const likeGossip = async (req: Request, res: Response) => {
         .json({ message: "This gossip have already been liked" });
     }
 
-    await gossipService.likeGossip(author, gossipId);
+    await gossipsService.likeGossip(author, gossipId);
 
     return res.status(HTTP_STATUSES.OK_200).json({ message: "Liked" });
   } catch (error) {
@@ -132,7 +132,7 @@ const unlikeGossip = async (req: Request, res: Response) => {
   const { gossipId } = req.params;
 
   try {
-    const gossip = await gossipRepo.findGossipById(gossipId);
+    const gossip = await gossipsRepo.findGossipById(gossipId);
     if (!gossip) {
       return res
         .status(HTTP_STATUSES.NOT_FOUND_404)
@@ -145,7 +145,7 @@ const unlikeGossip = async (req: Request, res: Response) => {
         .json({ message: "This gossip haven't liked yet" });
     }
 
-    await gossipService.unlikeGossip(author, gossipId);
+    await gossipsService.unlikeGossip(author, gossipId);
 
     return res
       .status(HTTP_STATUSES.OK_200)
@@ -163,7 +163,7 @@ const deleteGossip = async (req: Request, res: Response) => {
   const { gossipId } = req.params;
 
   try {
-    const gossip = await gossipRepo.findGossipById(gossipId);
+    const gossip = await gossipsRepo.findGossipById(gossipId);
 
     if (!gossip) {
       return res
@@ -177,7 +177,7 @@ const deleteGossip = async (req: Request, res: Response) => {
         .json({ message: "You are not authorized to delete this gossip" });
     }
 
-    const deletedGossip = await gossipService.deleteGossip(gossipId);
+    const deletedGossip = await gossipsService.deleteGossip(gossipId);
     return res
       .status(HTTP_STATUSES.OK_200)
       .json({ message: "Gossip deleted", gossip: deletedGossip });

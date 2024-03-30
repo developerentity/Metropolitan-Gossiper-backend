@@ -1,6 +1,6 @@
 import express from "express";
 
-import gossipsController from "../controllers/gossip-controller";
+import gossipsController from "../controllers/gossips-controller";
 import commentsController from "../controllers/comments-controller";
 import { basicTokenValidator } from "../middlewares/basic-token-validator";
 import {
