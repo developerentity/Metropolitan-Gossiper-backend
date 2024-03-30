@@ -22,7 +22,7 @@ export const checkUserPermission = async (
     next();
   } catch (error) {
     Logging.error(error);
-    res
+    return res
       .status(HTTP_STATUSES.INTERNAL_SERVER_ERROR_500)
       .json({ message: "An error occurred while checking user rights." });
   }
