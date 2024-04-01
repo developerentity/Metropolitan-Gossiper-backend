@@ -41,16 +41,21 @@ const createUser = async (
 
     const registeredUser = await usersQueryRepo.findUserById(user._id);
 
-    const token = await jwtService.createJWT(user, +MAX_TOKEN_AGE!);
-    res.cookie("token", token, {
-      httpOnly: true,
-      maxAge: +MAX_TOKEN_AGE! * 1000,
-    });
+    const accessToken = await jwtService.generateAccessJWT(user._id);
+    const refreshToken = await jwtService.generateRefreshJWT(user._id);
 
-    return res.status(HTTP_STATUSES.CREATED_201).json({
-      message: "User successfully Registered and Logged in",
-      user: registeredUser,
-    });
+    return res
+      .cookie("refresh-token", refreshToken, {
+        httpOnly: true,
+        sameSite: "strict",
+        maxAge: +MAX_TOKEN_AGE! * 1000,
+      })
+      .header("Authorization", accessToken)
+      .status(HTTP_STATUSES.OK_200)
+      .json({
+        message: "User successfully Registered and Logged in",
+        user: registeredUser,
+      });
   } catch (error) {
     Logging.error(error);
     return res

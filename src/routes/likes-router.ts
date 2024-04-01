@@ -6,7 +6,7 @@ import { basicTokenValidator } from "../middlewares/basic-token-validator";
 import {
   checkCommentIdValidity,
   checkGossipIdValidity,
-} from "../middlewares/check-user-id-validity";
+} from "../middlewares/check-id-validity";
 
 const router = express.Router();
 
