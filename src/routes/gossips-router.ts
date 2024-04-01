@@ -11,7 +11,6 @@ import { gossipCreateValidator } from "../validators/gossip-create-validator";
 import { validate } from "../middlewares/validate";
 import { gossipUpdateValidator } from "../validators/gossip-update-validator";
 import { commentCreateValidator } from "../validators/comment-create-validator";
-
 const router = express.Router();
 
 router.post(

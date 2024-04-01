@@ -10,6 +10,7 @@ const router = Router();
 
 router.post("/signup", signupValidator, validate, usersController.createUser);
 router.post("/signin", signinValidator, validate, authController.signin);
-router.get("/signout", authController.signout);
+router.delete("/signout", authController.signout);
+router.post("/refresh", authController.refresh);
 
 export = router;

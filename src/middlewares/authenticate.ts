@@ -9,7 +9,7 @@ export const authenticate = async (
   next: NextFunction
 ) => {
   const accessToken = req.headers.authorization?.split(" ")[1];
-  const refreshToken = req.cookies.refreshToken;
+  const refreshToken = req.cookies["refresh-token"];
   try {
     if (!accessToken && !refreshToken) {
       return res
@@ -21,7 +21,7 @@ export const authenticate = async (
       throw new Error();
     }
 
-    const decoded = await jwtService.getUserIdByToken(accessToken);
+    const decoded = await jwtService.verifyAccessJWT(accessToken);
     req.user = decoded;
     next();
   } catch (error) {
@@ -33,11 +33,11 @@ export const authenticate = async (
 
     try {
       const decoded = await jwtService.verifyRefreshJWT(refreshToken);
-      const accessToken = await jwtService.createJWT(decoded, +MAX_TOKEN_AGE!);
+      const accessToken = await jwtService.generateAccessJWT(decoded);
 
       res
         .status(HTTP_STATUSES.OK_200)
-        .cookie("refreshToken", refreshToken, {
+        .cookie("refresh-token", refreshToken, {
           httpOnly: true,
           sameSite: "strict",
           maxAge: +MAX_TOKEN_AGE! * 1000,

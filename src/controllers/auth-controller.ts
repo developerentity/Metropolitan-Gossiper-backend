@@ -18,16 +18,18 @@ const signin = async (req: Request, res: Response) => {
         .json({ error: "Invalid credentials" });
     }
 
-    const token = await jwtService.createJWT(user, +MAX_TOKEN_AGE!);
-    res.cookie("token", token, {
-      httpOnly: true,
-      maxAge: +MAX_TOKEN_AGE! * 1000,
-    });
+    const accessToken = await jwtService.generateAccessJWT(user._id);
+    const refreshToken = await jwtService.generateRefreshJWT(user._id);
 
-    return res.status(HTTP_STATUSES.OK_200).json({
-      message: "User successfully Logged in",
-      user: user._id,
-    });
+    return res
+      .cookie("refresh-token", refreshToken, {
+        httpOnly: true,
+        sameSite: "strict",
+        maxAge: +MAX_TOKEN_AGE! * 1000,
+      })
+      .header("Authorization", accessToken)
+      .status(HTTP_STATUSES.OK_200)
+      .json({ message: "User successfully Logged in" });
   } catch (error) {
     Logging.error(error);
     return res
@@ -40,7 +42,31 @@ const signout = async (req: Request, res: Response) => {
   res.cookie("token", "", { maxAge: 0 }).sendStatus(HTTP_STATUSES.OK_200);
 };
 
+const refresh = async (req: Request, res: Response) => {
+  const refreshToken = req.cookies['refresh-token'];
+  if (!refreshToken) {
+    return res
+      .status(HTTP_STATUSES.UNAUTHORIZED_401)
+      .send("Access Denied. No refresh token provided.");
+  }
+
+  try {
+    const decoded = await jwtService.verifyRefreshJWT(refreshToken);
+    const accessToken = await jwtService.generateAccessJWT(decoded);
+
+    return res
+      .header("Authorization", accessToken)
+      .sendStatus(HTTP_STATUSES.OK_200);
+  } catch (error) {
+    Logging.error(error);
+    return res.status(HTTP_STATUSES.FORBIDDEN_403).json({
+      message: "An error occurred while refreshing a token of the user.",
+    });
+  }
+};
+
 export default {
   signin,
   signout,
+  refresh,
 };

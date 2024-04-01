@@ -9,7 +9,7 @@ export async function basicTokenValidator(
   res: Response,
   next: NextFunction
 ) {
-  const token = req.cookies.token;
+  const token = req.headers.authorization?.split(" ")[1];
   try {
     if (!token) {
       return res
@@ -17,7 +17,7 @@ export async function basicTokenValidator(
         .json({ error: "Unauthorized" });
     }
 
-    const userId = await jwtService.getUserIdByToken(token);
+    const userId = await jwtService.verifyAccessJWT(token);
     if (!userId) {
       return res
         .status(HTTP_STATUSES.UNAUTHORIZED_401)
