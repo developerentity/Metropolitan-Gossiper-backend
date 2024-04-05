@@ -5,6 +5,28 @@ import { usersService } from "../domain/users-service";
 import { jwtService } from "../application/jwt-service";
 import { HTTP_STATUSES } from "../http-statuses";
 import { MAX_TOKEN_AGE } from "../config";
+import { usersRepo } from "../repositories/users-repo";
+
+const getAuthData = async (req: Request, res: Response) => {
+  const userId = req.user._id;
+
+  try {
+    const userData = await usersRepo.findUserById(userId);
+
+    if (!userData) {
+      return res
+        .status(HTTP_STATUSES.NOT_FOUND_404)
+        .json({ error: "User not found" });
+    }
+
+    return res.status(HTTP_STATUSES.OK_200).json(userData);
+  } catch (error) {
+    Logging.error(error);
+    return res
+      .status(HTTP_STATUSES.INTERNAL_SERVER_ERROR_500)
+      .json({ message: "An error occurred while fetching user data." });
+  }
+};
 
 const signin = async (req: Request, res: Response) => {
   const { loginOrEmail, password } = req.body;
@@ -43,7 +65,7 @@ const signout = async (req: Request, res: Response) => {
 };
 
 const refresh = async (req: Request, res: Response) => {
-  const refreshToken = req.cookies['refresh-token'];
+  const refreshToken = req.cookies["refresh-token"];
   if (!refreshToken) {
     return res
       .status(HTTP_STATUSES.UNAUTHORIZED_401)
@@ -66,6 +88,7 @@ const refresh = async (req: Request, res: Response) => {
 };
 
 export default {
+  getAuthData,
   signin,
   signout,
   refresh,

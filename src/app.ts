@@ -20,7 +20,7 @@ app.use(loggerMiddleware);
 
 app.use("/ping", pingRouter);
 app.use("/users", usersRouter);
-app.use("/auth", authRouter);
+app.use("/account", authRouter);
 app.use("/gossips", gossipsRouter);
 app.use("/likes", likesRouter);
 

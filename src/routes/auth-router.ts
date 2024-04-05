@@ -5,12 +5,19 @@ import usersController from "../controllers/users-controller";
 import { signupValidator } from "../validators/signup-validator";
 import { signinValidator } from "../validators/signin-validator";
 import { validate } from "../middlewares/validate";
+import { basicTokenValidator } from "../middlewares/basic-token-validator";
 
 const router = Router();
 
-router.post("/signup", signupValidator, validate, usersController.createUser);
-router.post("/signin", signinValidator, validate, authController.signin);
-router.delete("/signout", authController.signout);
+router.post(
+  "/auth/signup",
+  signupValidator,
+  validate,
+  usersController.createUser
+);
+router.post("/auth/signin", signinValidator, validate, authController.signin);
 router.post("/refresh", authController.refresh);
+router.get("/", basicTokenValidator, authController.getAuthData);
+router.delete("/auth/signout", authController.signout);
 
 export = router;
