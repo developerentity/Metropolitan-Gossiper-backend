@@ -44,18 +44,20 @@ const createUser = async (
     const accessToken = await jwtService.generateAccessJWT(user._id);
     const refreshToken = await jwtService.generateRefreshJWT(user._id);
 
-    return res
-      .cookie("refresh-token", refreshToken, {
-        httpOnly: true,
-        sameSite: "strict",
-        maxAge: +MAX_TOKEN_AGE! * 1000,
-      })
-      .header("Authorization", accessToken)
-      .status(HTTP_STATUSES.OK_200)
-      .json({
-        message: "User successfully Registered and Logged in",
-        user: registeredUser,
-      });
+    return (
+      res
+        .cookie("refresh-token", refreshToken, {
+          httpOnly: true,
+          sameSite: "strict",
+          maxAge: +MAX_TOKEN_AGE! * 1000,
+        })
+        // .set("Authorization", `Bearer ${accessToken}`)
+        .status(HTTP_STATUSES.OK_200)
+        .json({
+          message: "User successfully Registered and Logged in",
+          accessToken: accessToken,
+        })
+    );
   } catch (error) {
     Logging.error(error);
     return res

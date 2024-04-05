@@ -43,15 +43,20 @@ const signin = async (req: Request, res: Response) => {
     const accessToken = await jwtService.generateAccessJWT(user._id);
     const refreshToken = await jwtService.generateRefreshJWT(user._id);
 
-    return res
-      .cookie("refresh-token", refreshToken, {
-        httpOnly: true,
-        sameSite: "strict",
-        maxAge: +MAX_TOKEN_AGE! * 1000,
-      })
-      .header("Authorization", accessToken)
-      .status(HTTP_STATUSES.OK_200)
-      .json({ message: "User successfully Logged in" });
+    return (
+      res
+        .cookie("refresh-token", refreshToken, {
+          httpOnly: true,
+          sameSite: "strict",
+          maxAge: +MAX_TOKEN_AGE! * 1000,
+        })
+        // .set("Authorization", `Bearer ${accessToken}`)
+        .status(HTTP_STATUSES.OK_200)
+        .json({
+          message: "User successfully Logged in",
+          accessToken: accessToken,
+        })
+    );
   } catch (error) {
     Logging.error(error);
     return res
@@ -77,7 +82,7 @@ const refresh = async (req: Request, res: Response) => {
     const accessToken = await jwtService.generateAccessJWT(decoded);
 
     return res
-      .header("Authorization", accessToken)
+      .header("Authorization", `Bearer ${accessToken}`)
       .sendStatus(HTTP_STATUSES.OK_200);
   } catch (error) {
     Logging.error(error);
