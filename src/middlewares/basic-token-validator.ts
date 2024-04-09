@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 
 import { HTTP_STATUSES } from "../http-statuses";
-import { jwtService } from "../application/jwt-service";
+import { cookieOptions, jwtService } from "../application/jwt-service";
 import { usersRepo } from "../repositories/users-repo";
 
 export async function basicTokenValidator(
@@ -9,26 +9,48 @@ export async function basicTokenValidator(
   res: Response,
   next: NextFunction
 ) {
-  const token = req.headers.authorization?.split(" ")[1];
   try {
-    if (!token) {
+    const currentAccessToken = req.headers.authorization?.split(" ")[1];
+    if (!currentAccessToken)
       return res
         .status(HTTP_STATUSES.UNAUTHORIZED_401)
-        .json({ error: "Unauthorized" });
-    }
+        .json({ message: "Access token required" });
 
-    const userId = await jwtService.verifyAccessJWT(token);
+    const userId = await jwtService.verifyAccessJWT(currentAccessToken);
     if (!userId) {
-      return res
-        .status(HTTP_STATUSES.UNAUTHORIZED_401)
-        .json({ error: "Unauthorized" });
+      const previousRefreshToken = req.cookies["refresh-token"];
+      if (!previousRefreshToken)
+        return res
+          .status(HTTP_STATUSES.UNAUTHORIZED_401)
+          .json({ error: "Refresh token required" });
+
+      const userId = await jwtService.verifyRefreshJWT(previousRefreshToken);
+      if (!userId) {
+        return res
+          .status(HTTP_STATUSES.FORBIDDEN_403)
+          .json({ error: "Invalid refresh token" });
+      }
+
+      const userData = await usersRepo.findUserById(userId);
+      if (!userData) {
+        return res
+          .status(HTTP_STATUSES.BAD_REQUEST_400)
+          .json({ error: "User data by ID not fount" });
+      }
+
+      const { accessToken, refreshToken } = await jwtService.generateTokens(
+        userData._id
+      );
+      res.cookie("refresh-token", refreshToken, cookieOptions);
+      req.user = userData;
+      next();
     }
 
     const userData = await usersRepo.findUserById(userId);
     if (!userData) {
       return res
-        .status(HTTP_STATUSES.UNAUTHORIZED_401)
-        .json({ error: "Unauthorized" });
+        .status(HTTP_STATUSES.BAD_REQUEST_400)
+        .json({ error: "User data by ID not fount" });
     }
 
     req.user = userData;
@@ -36,6 +58,6 @@ export async function basicTokenValidator(
   } catch {
     return res
       .status(HTTP_STATUSES.UNAUTHORIZED_401)
-      .json({ error: "Unauthorized" });
+      .json({ error: "An error occurred while checking tokens" });
   }
 }
