@@ -16,7 +16,7 @@ router.post(
   usersController.createUser
 );
 router.post("/auth/signin", signinValidator, validate, authController.signin);
-router.post("/refresh", authController.refresh);
+router.post("/refresh-token", authController.refreshToken);
 router.get("/", basicTokenValidator, authController.getAuthData);
 router.delete("/auth/signout", authController.signout);
 

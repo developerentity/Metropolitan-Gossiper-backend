@@ -2,9 +2,8 @@ import { Request, Response } from "express";
 
 import Logging from "../library/Logging";
 import { usersService } from "../domain/users-service";
-import { jwtService } from "../application/jwt-service";
+import { cookieOptions, jwtService } from "../application/jwt-service";
 import { HTTP_STATUSES } from "../http-statuses";
-import { MAX_TOKEN_AGE } from "../config";
 import { usersRepo } from "../repositories/users-repo";
 
 const getAuthData = async (req: Request, res: Response) => {
@@ -40,23 +39,18 @@ const signin = async (req: Request, res: Response) => {
         .json({ error: "Invalid credentials" });
     }
 
-    const accessToken = await jwtService.generateAccessJWT(user._id);
-    const refreshToken = await jwtService.generateRefreshJWT(user._id);
-
-    return (
-      res
-        .cookie("refresh-token", refreshToken, {
-          httpOnly: true,
-          sameSite: "strict",
-          maxAge: +MAX_TOKEN_AGE! * 1000,
-        })
-        // .set("Authorization", `Bearer ${accessToken}`)
-        .status(HTTP_STATUSES.OK_200)
-        .json({
-          message: "User successfully Logged in",
-          accessToken: accessToken,
-        })
+    const { accessToken, refreshToken } = await jwtService.generateTokens(
+      user.id
     );
+
+    return res
+      .cookie("refresh-token", refreshToken, cookieOptions)
+      .set("Authorization", `Bearer ${accessToken}`)
+      .status(HTTP_STATUSES.OK_200)
+      .json({
+        message: "User successfully Logged in",
+        accessToken: accessToken,
+      });
   } catch (error) {
     Logging.error(error);
     return res
@@ -69,21 +63,24 @@ const signout = async (req: Request, res: Response) => {
   res.cookie("token", "", { maxAge: 0 }).sendStatus(HTTP_STATUSES.OK_200);
 };
 
-const refresh = async (req: Request, res: Response) => {
-  const refreshToken = req.cookies["refresh-token"];
-  if (!refreshToken) {
+const refreshToken = async (req: Request, res: Response) => {
+  const previousRefreshToken = req.cookies["refresh-token"];
+  if (!previousRefreshToken) {
     return res
       .status(HTTP_STATUSES.UNAUTHORIZED_401)
       .send("Access Denied. No refresh token provided.");
   }
 
   try {
-    const decoded = await jwtService.verifyRefreshJWT(refreshToken);
-    const accessToken = await jwtService.generateAccessJWT(decoded);
+    const userId = await jwtService.verifyRefreshJWT(previousRefreshToken);
+    const { accessToken, refreshToken } = await jwtService.generateTokens(
+      userId
+    );
 
     return res
-      .header("Authorization", `Bearer ${accessToken}`)
-      .sendStatus(HTTP_STATUSES.OK_200);
+      .cookie("refresh-token", refreshToken, cookieOptions)
+      .status(HTTP_STATUSES.OK_200)
+      .json({ accessToken });
   } catch (error) {
     Logging.error(error);
     return res.status(HTTP_STATUSES.FORBIDDEN_403).json({
@@ -96,5 +93,5 @@ export default {
   getAuthData,
   signin,
   signout,
-  refresh,
+  refreshToken,
 };

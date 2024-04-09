@@ -11,8 +11,7 @@ import { QueryUsersModel } from "../models/users/query-users-model";
 import { UsersListViewModel } from "../models/users/user-view-model";
 import { ErrorResponse } from "../types/response-types";
 import { usersService } from "../domain/users-service";
-import { jwtService } from "../application/jwt-service";
-import { MAX_TOKEN_AGE } from "../config";
+import { cookieOptions, jwtService } from "../application/jwt-service";
 import { CreateUserModel } from "../models/users/create-user-model";
 import { URIParamsUserModel } from "../models/users/uri-params-user-model";
 import { usersQueryRepo } from "../repositories/users-query-repo";
@@ -41,23 +40,17 @@ const createUser = async (
 
     const registeredUser = await usersQueryRepo.findUserById(user._id);
 
-    const accessToken = await jwtService.generateAccessJWT(user._id);
-    const refreshToken = await jwtService.generateRefreshJWT(user._id);
-
-    return (
-      res
-        .cookie("refresh-token", refreshToken, {
-          httpOnly: true,
-          sameSite: "strict",
-          maxAge: +MAX_TOKEN_AGE! * 1000,
-        })
-        // .set("Authorization", `Bearer ${accessToken}`)
-        .status(HTTP_STATUSES.OK_200)
-        .json({
-          message: "User successfully Registered and Logged in",
-          accessToken: accessToken,
-        })
+    const { accessToken, refreshToken } = await jwtService.generateTokens(
+      user.id
     );
+
+    return res
+      .cookie("refresh-token", refreshToken, cookieOptions)
+      .status(HTTP_STATUSES.OK_200)
+      .json({
+        message: "User successfully Registered and Logged in",
+        accessToken: accessToken,
+      });
   } catch (error) {
     Logging.error(error);
     return res
