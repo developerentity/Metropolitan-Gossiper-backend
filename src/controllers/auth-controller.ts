@@ -45,11 +45,10 @@ const signin = async (req: Request, res: Response) => {
 
     return res
       .cookie("refresh-token", refreshToken, cookieOptions)
-      .set("Authorization", `Bearer ${accessToken}`)
       .status(HTTP_STATUSES.OK_200)
       .json({
         message: "User successfully Logged in",
-        accessToken: accessToken,
+        accessToken,
       });
   } catch (error) {
     Logging.error(error);

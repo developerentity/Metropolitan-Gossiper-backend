@@ -2,6 +2,8 @@ import mongoose, { Document, Schema } from "mongoose";
 
 export interface IUser {
   username: string;
+  firstName: string;
+  lastName: string;
   email: string;
   password: string;
   about: string;
@@ -20,6 +22,14 @@ const UserSchema: Schema = new Schema(
       type: String,
       required: true,
       unique: true,
+    },
+    firstName: {
+      type: String,
+      required: true,
+    },
+    lastName: {
+      type: String,
+      required: true,
     },
     email: {
       type: String,
