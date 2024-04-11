@@ -1,8 +1,6 @@
 export type CreateUserModel = {
-  /**
-   * User name
-   */
-  username: string;
+  firstName: string;
+  lastName: string;
   email: string;
   password: string;
   about?: string;

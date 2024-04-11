@@ -28,10 +28,10 @@ const getAuthData = async (req: Request, res: Response) => {
 };
 
 const signin = async (req: Request, res: Response) => {
-  const { loginOrEmail, password } = req.body;
+  const { email, password } = req.body;
 
   try {
-    const user = await usersService.checkCredentials(loginOrEmail, password);
+    const user = await usersService.checkCredentials(email, password);
 
     if (!user) {
       return res
@@ -45,11 +45,10 @@ const signin = async (req: Request, res: Response) => {
 
     return res
       .cookie("refresh-token", refreshToken, cookieOptions)
-      .set("Authorization", `Bearer ${accessToken}`)
       .status(HTTP_STATUSES.OK_200)
       .json({
         message: "User successfully Logged in",
-        accessToken: accessToken,
+        accessToken,
       });
   } catch (error) {
     Logging.error(error);

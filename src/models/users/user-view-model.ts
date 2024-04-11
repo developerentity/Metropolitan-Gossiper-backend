@@ -2,10 +2,8 @@ import { IGossip } from "../gossip-model";
 import { IUserModel } from "../user-model";
 
 export type UserViewModel = {
-  /**
-   * User name
-   */
-  username: string;
+  firstName: string;
+  lastName: string;
   gossips: IGossip[];
   about: string;
 };
