@@ -23,10 +23,11 @@ const createUser = async (
   req: RequestWithBody<CreateUserModel>,
   res: Response
 ) => {
-  const { username, email, password, about } = req.body;
+  const { firstName, lastName, email, password, about } = req.body;
   try {
     const user = await usersService.createUser(
-      username,
+      firstName,
+      lastName,
       email,
       password,
       about

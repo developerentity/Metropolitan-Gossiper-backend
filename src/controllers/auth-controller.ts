@@ -28,10 +28,10 @@ const getAuthData = async (req: Request, res: Response) => {
 };
 
 const signin = async (req: Request, res: Response) => {
-  const { loginOrEmail, password } = req.body;
+  const { email, password } = req.body;
 
   try {
-    const user = await usersService.checkCredentials(loginOrEmail, password);
+    const user = await usersService.checkCredentials(email, password);
 
     if (!user) {
       return res

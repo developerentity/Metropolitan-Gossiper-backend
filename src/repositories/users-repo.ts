@@ -20,10 +20,8 @@ export const usersRepo = {
   async findUserById(id: ObjectId): Promise<IUserModel | null> {
     return await User.findById(id).populate("gossips");
   },
-  async findByLoginOrEmail(loginOrEmail: string): Promise<IUserModel | null> {
-    return await User.findOne({
-      $or: [{ email: loginOrEmail }, { username: loginOrEmail }],
-    });
+  async findByEmail(email: string): Promise<IUserModel | null> {
+    return await User.findOne({ email: email });
   },
   async deleteUser(userId: string): Promise<boolean> {
     const result = await User.findByIdAndDelete(userId);

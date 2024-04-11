@@ -8,7 +8,8 @@ import { IUser, IUserModel } from "../models/user-model";
  */
 export const usersService = {
   async createUser(
-    username: string,
+    firstName: string,
+    lastName: string,
     email: string,
     password: string,
     about?: string
@@ -17,7 +18,8 @@ export const usersService = {
     const hashedPassword = await bcrypt.hash(password, salt);
 
     const newUser: IUser = {
-      username,
+      firstName,
+      lastName,
       email,
       password: hashedPassword,
       about: about || "",
@@ -34,10 +36,10 @@ export const usersService = {
     return usersRepo.updateUser(id, updateOps);
   },
   async checkCredentials(
-    loginOrEmail: string,
+    email: string,
     password: string
   ): Promise<IUserModel | null> {
-    const user = await usersRepo.findByLoginOrEmail(loginOrEmail);
+    const user = await usersRepo.findByEmail(email);
     if (!user) return null;
 
     const storedHashedPassword = user.password;

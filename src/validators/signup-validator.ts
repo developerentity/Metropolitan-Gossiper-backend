@@ -1,7 +1,8 @@
 import { body } from "express-validator";
 
 export const signupValidator = [
-  body("username", "Username does not Empty").not().isEmpty(),
+  body("firstName", "First name does not Empty").not().isEmpty(),
+  body("lastName", "Second name does not Empty").not().isEmpty(),
   body("email", "Invalid email").isEmail().not().isEmpty(),
   body("password", "Password does not Empty").not().isEmpty(),
   body("password", "The minimum password length is 8 characters").isLength({
