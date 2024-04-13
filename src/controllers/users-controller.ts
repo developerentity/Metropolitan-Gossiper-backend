@@ -8,8 +8,7 @@ import {
   RequestWithQuery,
 } from "../types/request-types";
 import { QueryUsersModel } from "../models/users/query-users-model";
-import { UsersListViewModel } from "../models/users/user-view-model";
-import { ErrorResponse } from "../types/response-types";
+import { ErrorResponse, ItemsListViewModel } from "../types/response-types";
 import { usersService } from "../domain/users-service";
 import { cookieOptions, jwtService } from "../application/jwt-service";
 import { CreateUserModel } from "../models/users/create-user-model";
@@ -18,6 +17,7 @@ import { usersQueryRepo } from "../repositories/users-query-repo";
 import { usersRepo } from "../repositories/users-repo";
 import { UpdateUserModel } from "../models/users/update-user-model";
 import Logging from "../library/Logging";
+import { IUserModel } from "../models/user-model";
 
 const createUser = async (
   req: RequestWithBody<CreateUserModel>,
@@ -85,10 +85,10 @@ const readUser = async (
 
 const readAll = async (
   req: RequestWithQuery<QueryUsersModel>,
-  res: Response<UsersListViewModel | ErrorResponse>
+  res: Response<ItemsListViewModel<IUserModel> | ErrorResponse>
 ) => {
   try {
-    const foundUsers: UsersListViewModel = await usersQueryRepo.getAllUsers({
+    const foundUsers: ItemsListViewModel<IUserModel> = await usersQueryRepo.getAllUsers({
       limit: +req.query.pageSize,
       page: +req.query.pageNumber,
       sortField: req.query.sortField,

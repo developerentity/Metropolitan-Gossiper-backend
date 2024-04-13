@@ -8,9 +8,9 @@ export type UserViewModel = {
   about: string;
 };
 
-export type UsersListViewModel = {
-  totalItems: number;
-  totalPages: number;
-  currentPage: number;
-  items: IUserModel[];
-};
+// export type UsersListViewModel = {
+//   totalItems: number;
+//   totalPages: number;
+//   currentPage: number;
+//   items: IUserModel[];
+// };

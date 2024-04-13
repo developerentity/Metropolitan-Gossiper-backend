@@ -1,7 +1,7 @@
 import { Types } from "mongoose";
 import Gossip, { IGossipModel } from "../models/gossip-model";
-import { GossipsListViewModel } from "../models/gossips/gossips-view-model";
 import { GossipsQueryFilter } from "../models/gossips/gossip-query-filter";
+import { ItemsListViewModel } from "../types/response-types";
 
 /**
  * This is the DAL (Data Access Layer).
@@ -18,7 +18,7 @@ export const gossipsQueryRepo = {
     sortField?: string;
     sortOrder?: string;
     titleFilter?: string;
-  }): Promise<GossipsListViewModel> {
+  }): Promise<ItemsListViewModel<IGossipModel>> {
     const limit = queryParams.limit || 10;
     const page = queryParams.page || 1;
     const sortField = queryParams.sortField || "createdAt";

@@ -1,5 +1,5 @@
-import { UsersListViewModel } from "../models/users/user-view-model";
 import User, { IUserModel } from "../models/user-model";
+import { ItemsListViewModel } from "../types/response-types";
 
 /**
  * This is the DAL (Data Access Layer).
@@ -11,7 +11,7 @@ export const usersQueryRepo = {
     page: number;
     sortField: string;
     sortOrder: string;
-  }): Promise<UsersListViewModel> {
+  }): Promise<ItemsListViewModel<IUserModel>> {
     const limit = queryParams.limit || 10;
     const page = queryParams.page || 1;
     const sortField = queryParams.sortField || "createdAt";

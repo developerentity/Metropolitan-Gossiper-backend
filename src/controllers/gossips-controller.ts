@@ -12,8 +12,8 @@ import {
 import { UpdateGossipModel } from "../models/gossips/update-gossip-model";
 import { URIParamsGossipModel } from "../models/gossips/uri-params-gossip-model";
 import { QueryGossipModel } from "../models/gossips/query-gossip-model";
-import { ErrorResponse } from "../types/response-types";
-import { GossipsListViewModel } from "../models/gossips/gossips-view-model";
+import { ErrorResponse, ItemsListViewModel } from "../types/response-types";
+import { IGossipModel } from "../models/gossip-model";
 
 const createGossip = async (req: Request, res: Response) => {
   const { title, content, imageUrl } = req.body;
@@ -59,10 +59,10 @@ const readGossip = async (req: Request, res: Response) => {
 
 const readAll = async (
   req: RequestWithQuery<QueryGossipModel>,
-  res: Response<GossipsListViewModel | ErrorResponse>
+  res: Response<ItemsListViewModel<IGossipModel> | ErrorResponse>
 ) => {
   try {
-    const foundGossips: GossipsListViewModel =
+    const foundGossips: ItemsListViewModel<IGossipModel> =
       await gossipsQueryRepo.findGossips({
         limit: +req.query.pageSize,
         page: +req.query.pageNumber,
