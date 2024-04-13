@@ -4,4 +4,5 @@ export type QueryGossipModel = {
   pageNumber: string;
   sortField: string;
   sortOrder: string;
+  titleFilter: string;
 };

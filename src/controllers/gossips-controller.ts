@@ -68,6 +68,8 @@ const readAll = async (
         page: +req.query.pageNumber,
         sortField: req.query.sortField,
         sortOrder: req.query.sortOrder,
+        authorId: req.query.authorId,
+        titleFilter: req.query.titleFilter,
       });
 
     return res.status(HTTP_STATUSES.OK_200).json(foundGossips);
