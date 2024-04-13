@@ -5,9 +5,15 @@ import Logging from "../library/Logging";
 import { gossipsService } from "../domain/gossips-service";
 import { gossipsQueryRepo } from "../repositories/gossips-query-repo";
 import { gossipsRepo } from "../repositories/gossips-repo";
-import { RequestWithParamsAndBody } from "../types/request-types";
+import {
+  RequestWithParamsAndBody,
+  RequestWithQuery,
+} from "../types/request-types";
 import { UpdateGossipModel } from "../models/gossips/update-gossip-model";
 import { URIParamsGossipModel } from "../models/gossips/uri-params-gossip-model";
+import { QueryGossipModel } from "../models/gossips/query-gossip-model";
+import { ErrorResponse } from "../types/response-types";
+import { GossipsListViewModel } from "../models/gossips/gossips-view-model";
 
 const createGossip = async (req: Request, res: Response) => {
   const { title, content, imageUrl } = req.body;
@@ -51,10 +57,22 @@ const readGossip = async (req: Request, res: Response) => {
   }
 };
 
-const readAll = async (req: Request, res: Response) => {
+const readAll = async (
+  req: RequestWithQuery<QueryGossipModel>,
+  res: Response<GossipsListViewModel | ErrorResponse>
+) => {
   try {
-    const gossips = await gossipsQueryRepo.findAllGossips();
-    return res.status(HTTP_STATUSES.OK_200).json({ gossips });
+    const foundGossips: GossipsListViewModel =
+      await gossipsQueryRepo.findGossips({
+        limit: +req.query.pageSize,
+        page: +req.query.pageNumber,
+        sortField: req.query.sortField,
+        sortOrder: req.query.sortOrder,
+        authorId: req.query.authorId,
+        titleFilter: req.query.titleFilter,
+      });
+
+    return res.status(HTTP_STATUSES.OK_200).json(foundGossips);
   } catch (error) {
     Logging.error(error);
     return res
