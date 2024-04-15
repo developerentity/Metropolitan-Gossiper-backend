@@ -24,7 +24,15 @@ const createUser = async (
   res: Response
 ) => {
   const { firstName, lastName, email, password, about } = req.body;
+
   try {
+    const existingUser = await usersRepo.checkIfEmailIsAlreadyOccupied(email);
+    if (existingUser) {
+      return res
+        .status(HTTP_STATUSES.BAD_REQUEST_400)
+        .send({ message: "User with such email already registered" });
+    }
+
     const user = await usersService.createUser(
       firstName,
       lastName,
@@ -88,12 +96,13 @@ const readAll = async (
   res: Response<ItemsListViewModel<IUserModel> | ErrorResponse>
 ) => {
   try {
-    const foundUsers: ItemsListViewModel<IUserModel> = await usersQueryRepo.getAllUsers({
-      limit: +req.query.pageSize,
-      page: +req.query.pageNumber,
-      sortField: req.query.sortField,
-      sortOrder: req.query.sortOrder,
-    });
+    const foundUsers: ItemsListViewModel<IUserModel> =
+      await usersQueryRepo.getAllUsers({
+        limit: +req.query.pageSize,
+        page: +req.query.pageNumber,
+        sortField: req.query.sortField,
+        sortOrder: req.query.sortOrder,
+      });
 
     res.status(HTTP_STATUSES.OK_200).json(foundUsers);
   } catch (error) {
