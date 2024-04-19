@@ -12,8 +12,9 @@ import {
 import { UpdateGossipModel } from "../models/gossips/update-gossip-model";
 import { URIParamsGossipModel } from "../models/gossips/uri-params-gossip-model";
 import { QueryGossipModel } from "../models/gossips/query-gossip-model";
-import { ErrorResponse } from "../types/response-types";
-import { GossipsListViewModel } from "../models/gossips/gossips-view-model";
+import { ErrorResponse, ItemsListViewModel } from "../types/response-types";
+import { IGossipModel } from "../models/gossip-model";
+import { GossipViewModel } from "../models/gossips/gossip-view-model";
 
 const createGossip = async (req: Request, res: Response) => {
   const { title, content, imageUrl } = req.body;
@@ -59,10 +60,10 @@ const readGossip = async (req: Request, res: Response) => {
 
 const readAll = async (
   req: RequestWithQuery<QueryGossipModel>,
-  res: Response<GossipsListViewModel | ErrorResponse>
+  res: Response<ItemsListViewModel<GossipViewModel> | ErrorResponse>
 ) => {
   try {
-    const foundGossips: GossipsListViewModel =
+    const foundGossips: ItemsListViewModel<GossipViewModel> =
       await gossipsQueryRepo.findGossips({
         limit: +req.query.pageSize,
         page: +req.query.pageNumber,
@@ -71,6 +72,8 @@ const readAll = async (
         authorId: req.query.authorId,
         titleFilter: req.query.titleFilter,
       });
+
+      console.log(foundGossips.items[0])
 
     return res.status(HTTP_STATUSES.OK_200).json(foundGossips);
   } catch (error) {

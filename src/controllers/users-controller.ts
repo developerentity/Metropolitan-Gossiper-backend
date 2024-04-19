@@ -8,8 +8,7 @@ import {
   RequestWithQuery,
 } from "../types/request-types";
 import { QueryUsersModel } from "../models/users/query-users-model";
-import { UsersListViewModel } from "../models/users/user-view-model";
-import { ErrorResponse } from "../types/response-types";
+import { ErrorResponse, ItemsListViewModel } from "../types/response-types";
 import { usersService } from "../domain/users-service";
 import { cookieOptions, jwtService } from "../application/jwt-service";
 import { CreateUserModel } from "../models/users/create-user-model";
@@ -18,13 +17,22 @@ import { usersQueryRepo } from "../repositories/users-query-repo";
 import { usersRepo } from "../repositories/users-repo";
 import { UpdateUserModel } from "../models/users/update-user-model";
 import Logging from "../library/Logging";
+import { IUserModel } from "../models/user-model";
 
 const createUser = async (
   req: RequestWithBody<CreateUserModel>,
   res: Response
 ) => {
   const { firstName, lastName, email, password, about } = req.body;
+
   try {
+    const existingUser = await usersRepo.checkIfEmailIsAlreadyOccupied(email);
+    if (existingUser) {
+      return res
+        .status(HTTP_STATUSES.BAD_REQUEST_400)
+        .send({ message: "User with such email already registered" });
+    }
+
     const user = await usersService.createUser(
       firstName,
       lastName,
@@ -85,15 +93,16 @@ const readUser = async (
 
 const readAll = async (
   req: RequestWithQuery<QueryUsersModel>,
-  res: Response<UsersListViewModel | ErrorResponse>
+  res: Response<ItemsListViewModel<IUserModel> | ErrorResponse>
 ) => {
   try {
-    const foundUsers: UsersListViewModel = await usersQueryRepo.getAllUsers({
-      limit: +req.query.pageSize,
-      page: +req.query.pageNumber,
-      sortField: req.query.sortField,
-      sortOrder: req.query.sortOrder,
-    });
+    const foundUsers: ItemsListViewModel<IUserModel> =
+      await usersQueryRepo.getAllUsers({
+        limit: +req.query.pageSize,
+        page: +req.query.pageNumber,
+        sortField: req.query.sortField,
+        sortOrder: req.query.sortOrder,
+      });
 
     res.status(HTTP_STATUSES.OK_200).json(foundUsers);
   } catch (error) {

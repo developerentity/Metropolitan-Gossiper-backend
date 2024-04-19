@@ -27,4 +27,8 @@ export const usersRepo = {
     const result = await User.findByIdAndDelete(userId);
     return !!result;
   },
+  async checkIfEmailIsAlreadyOccupied(email: string): Promise<boolean> {
+    const existingUser = await User.findOne({ email });
+    return !!existingUser;
+  },
 };
