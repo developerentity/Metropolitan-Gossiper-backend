@@ -44,6 +44,7 @@ router.post(
   validate,
   commentsController.createComment
 );
+router.get("/get/:gossipId/comments/", commentsController.readCommentsByGossip);
 router.delete(
   "/delete/comment/:commentId",
   checkCommentIdValidity,

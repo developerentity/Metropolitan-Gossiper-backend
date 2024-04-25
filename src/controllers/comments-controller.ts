@@ -5,6 +5,12 @@ import { HTTP_STATUSES } from "../http-statuses";
 import { gossipsRepo } from "../repositories/gossips-repo";
 import { commentsService } from "../domain/comments-service";
 import { commentsRepo } from "../repositories/comments-repo";
+import { CommentViewModel } from "../models/comments/comment-view-model";
+import { ErrorResponse, ItemsListViewModel } from "../types/response-types";
+import { RequestWithParamsAndQuery } from "../types/request-types";
+import { QueryCommentModel } from "../models/comments/query-comment-model";
+import { URIParamsGossipModel } from "../models/gossips/uri-params-gossip-model";
+import { commentsQueryRepo } from "../repositories/comments-query-repo";
 
 const createComment = async (req: Request, res: Response) => {
   const { content, parent } = req.body;
@@ -36,6 +42,27 @@ const createComment = async (req: Request, res: Response) => {
     return res
       .status(HTTP_STATUSES.INTERNAL_SERVER_ERROR_500)
       .json({ message: "An error occurred while trying to create a comment." });
+  }
+};
+
+const readCommentsByGossip = async (
+  req: RequestWithParamsAndQuery<URIParamsGossipModel, QueryCommentModel>,
+  res: Response<ItemsListViewModel<CommentViewModel> | null | ErrorResponse>
+) => {
+  try {
+    const foundComments: ItemsListViewModel<CommentViewModel> | null =
+      await commentsQueryRepo.findCommentsByGossip(
+        req.params.gossipId,
+        +req.query.pageSize,
+        +req.query.pageNumber
+      );
+
+    return res.status(HTTP_STATUSES.OK_200).json(foundComments);
+  } catch (error) {
+    Logging.error(error);
+    return res.status(HTTP_STATUSES.INTERNAL_SERVER_ERROR_500).json({
+      message: "An error occurred while trying to read comments by comments.",
+    });
   }
 };
 
@@ -135,6 +162,7 @@ const deleteComment = async (req: Request, res: Response) => {
 
 export default {
   createComment,
+  readCommentsByGossip,
   likeComment,
   unlikeComment,
   deleteComment,
