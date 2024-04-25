@@ -49,7 +49,7 @@ const readGossip = async (req: Request, res: Response) => {
         .json({ message: "Gossip not found" });
     }
 
-    return res.status(HTTP_STATUSES.OK_200).json({ gossip });
+    return res.status(HTTP_STATUSES.OK_200).json(gossip);
   } catch (error) {
     Logging.error(error);
     return res
@@ -72,8 +72,6 @@ const readAll = async (
         authorId: req.query.authorId,
         titleFilter: req.query.titleFilter,
       });
-
-      console.log(foundGossips.items[0])
 
     return res.status(HTTP_STATUSES.OK_200).json(foundGossips);
   } catch (error) {
