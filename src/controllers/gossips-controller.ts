@@ -13,7 +13,6 @@ import { UpdateGossipModel } from "../models/gossips/update-gossip-model";
 import { URIParamsGossipModel } from "../models/gossips/uri-params-gossip-model";
 import { QueryGossipModel } from "../models/gossips/query-gossip-model";
 import { ErrorResponse, ItemsListViewModel } from "../types/response-types";
-import { IGossipModel } from "../models/gossip-model";
 import { GossipViewModel } from "../models/gossips/gossip-view-model";
 
 const createGossip = async (req: Request, res: Response) => {
