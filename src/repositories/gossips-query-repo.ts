@@ -37,7 +37,7 @@ export const gossipsQueryRepo = {
     const limit = queryParams.limit || 10;
     const page = queryParams.page || 1;
     const sortField = queryParams.sortField || "createdAt";
-    const sortOrder = queryParams.sortOrder === "desc" ? -1 : 1;
+    const sortOrder = queryParams.sortOrder === "asc" ? 1 : -1;
     const authorId = queryParams.authorId;
     const titleFilter = queryParams.titleFilter || "";
 
