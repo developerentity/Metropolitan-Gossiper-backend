@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 
 import { HTTP_STATUSES } from "../http-statuses";
-import { cookieOptions, jwtService } from "../application/jwt-service";
+import { jwtService } from "../application/jwt-service";
 import { usersRepo } from "../repositories/users-repo";
 
 export async function basicTokenValidator(

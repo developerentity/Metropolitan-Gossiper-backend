@@ -10,7 +10,6 @@ import {
 import { QueryUsersModel } from "../models/users/query-users-model";
 import { ErrorResponse, ItemsListViewModel } from "../types/response-types";
 import { usersService } from "../domain/users-service";
-import { cookieOptions, jwtService } from "../application/jwt-service";
 import { CreateUserModel } from "../models/users/create-user-model";
 import { URIParamsUserModel } from "../models/users/uri-params-user-model";
 import { usersQueryRepo } from "../repositories/users-query-repo";
@@ -18,6 +17,8 @@ import { usersRepo } from "../repositories/users-repo";
 import { UpdateUserModel } from "../models/users/update-user-model";
 import Logging from "../library/Logging";
 import { IUserModel } from "../models/user-model";
+import { EXPIRES_TOKEN } from "../config";
+import { jwtService } from "../application/jwt-service";
 
 const createUser = async (
   req: RequestWithBody<CreateUserModel>,
@@ -54,13 +55,14 @@ const createUser = async (
       user.id
     );
 
-    return res
-      .cookie("refresh-token", refreshToken, cookieOptions)
-      .status(HTTP_STATUSES.OK_200)
-      .json({
-        message: "User successfully Registered and Logged in",
-        accessToken: accessToken,
-      });
+    return res.status(HTTP_STATUSES.OK_200).json({
+      registeredUser,
+      backendTokens: {
+        accessToken,
+        refreshToken,
+        expiresIn: new Date().setTime(new Date().getTime() + +EXPIRES_TOKEN!),
+      },
+    });
   } catch (error) {
     Logging.error(error);
     return res

@@ -5,8 +5,7 @@ import { usersService } from "../domain/users-service";
 import { jwtService } from "../application/jwt-service";
 import { HTTP_STATUSES } from "../http-statuses";
 import { usersRepo } from "../repositories/users-repo";
-
-const EXPIRES_TOKEN = 20 * 1000;
+import { EXPIRES_TOKEN } from "../config";
 
 const getAuthData = async (req: Request, res: Response) => {
   const userId = req.user._id;
@@ -50,7 +49,7 @@ const signin = async (req: Request, res: Response) => {
       backendTokens: {
         accessToken,
         refreshToken,
-        expiresTime: new Date().setTime(new Date().getTime() + EXPIRES_TOKEN),
+        expiresIn: new Date().setTime(new Date().getTime() + +EXPIRES_TOKEN!),
       },
     });
   } catch (error) {
@@ -87,7 +86,7 @@ const refreshToken = async (req: Request, res: Response) => {
       backendTokens: {
         accessToken,
         refreshToken,
-        expiresTime: new Date().setTime(new Date().getTime() + EXPIRES_TOKEN),
+        expiresIn: new Date().setTime(new Date().getTime() + +EXPIRES_TOKEN!),
       },
     });
   } catch (error) {
