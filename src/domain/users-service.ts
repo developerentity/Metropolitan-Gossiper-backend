@@ -10,6 +10,7 @@ export const usersService = {
   async createUser(
     firstName: string,
     lastName: string,
+    avatar: string,
     email: string,
     password: string,
     about?: string
@@ -20,6 +21,7 @@ export const usersService = {
     const newUser: IUser = {
       firstName,
       lastName,
+      avatar,
       email,
       password: hashedPassword,
       about: about || "",

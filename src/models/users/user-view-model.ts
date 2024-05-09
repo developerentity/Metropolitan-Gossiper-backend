@@ -1,8 +1,10 @@
-import { IGossip } from "../gossip-model";
-
 export type UserViewModel = {
+  id: string;
   firstName: string;
   lastName: string;
-  gossips: IGossip[];
+  avatar: string;
+  email: string;
   about: string;
+  gossips: string[];
+  createdAt: Date;
 };

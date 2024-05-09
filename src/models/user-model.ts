@@ -3,6 +3,7 @@ import mongoose, { Document, Schema } from "mongoose";
 export interface IUser {
   firstName: string;
   lastName: string;
+  avatar: string;
   email: string;
   password: string;
   about: string;
@@ -13,7 +14,10 @@ export interface IUser {
   likedComments: string[];
 }
 
-export interface IUserModel extends IUser, Document {}
+export interface IUserModel extends IUser, Document {
+  createdAt: Date;
+  updatedAt: Date;
+}
 
 const UserSchema: Schema = new Schema(
   {
@@ -24,6 +28,9 @@ const UserSchema: Schema = new Schema(
     lastName: {
       type: String,
       required: true,
+    },
+    avatar: {
+      type: String,
     },
     email: {
       type: String,

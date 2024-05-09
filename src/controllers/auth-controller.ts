@@ -2,9 +2,10 @@ import { Request, Response } from "express";
 
 import Logging from "../library/Logging";
 import { usersService } from "../domain/users-service";
-import { cookieOptions, jwtService } from "../application/jwt-service";
+import { jwtService } from "../application/jwt-service";
 import { HTTP_STATUSES } from "../http-statuses";
 import { usersRepo } from "../repositories/users-repo";
+import { EXPIRES_TOKEN } from "../config";
 
 const getAuthData = async (req: Request, res: Response) => {
   const userId = req.user._id;
@@ -43,13 +44,14 @@ const signin = async (req: Request, res: Response) => {
       user.id
     );
 
-    return res
-      .cookie("refresh-token", refreshToken, cookieOptions)
-      .status(HTTP_STATUSES.OK_200)
-      .json({
-        message: "User successfully Logged in",
+    return res.status(HTTP_STATUSES.OK_200).json({
+      user,
+      backendTokens: {
         accessToken,
-      });
+        refreshToken,
+        expiresIn: new Date().setTime(new Date().getTime() + +EXPIRES_TOKEN!),
+      },
+    });
   } catch (error) {
     Logging.error(error);
     return res
@@ -63,7 +65,9 @@ const signout = async (req: Request, res: Response) => {
 };
 
 const refreshToken = async (req: Request, res: Response) => {
-  const previousRefreshToken = req.cookies["refresh-token"];
+  const [type, token] = req.headers.authorization?.split(" ") ?? [];
+  const previousRefreshToken = type === "Refresh" ? token : undefined;
+
   if (!previousRefreshToken) {
     return res
       .status(HTTP_STATUSES.UNAUTHORIZED_401)
@@ -72,16 +76,20 @@ const refreshToken = async (req: Request, res: Response) => {
 
   try {
     const userId = await jwtService.verifyRefreshJWT(previousRefreshToken);
+    const user = await usersRepo.findUserById(userId);
     const { accessToken, refreshToken } = await jwtService.generateTokens(
       userId
     );
 
-    return res
-      .cookie("refresh-token", refreshToken, cookieOptions)
-      .status(HTTP_STATUSES.OK_200)
-      .json({ accessToken });
+    return res.status(HTTP_STATUSES.OK_200).json({
+      user,
+      backendTokens: {
+        accessToken,
+        refreshToken,
+        expiresIn: new Date().setTime(new Date().getTime() + +EXPIRES_TOKEN!),
+      },
+    });
   } catch (error) {
-    Logging.error(error);
     return res.status(HTTP_STATUSES.FORBIDDEN_403).json({
       message: "An error occurred while refreshing a token of the user.",
     });
