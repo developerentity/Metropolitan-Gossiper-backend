@@ -23,7 +23,7 @@ const createUser = async (
   req: RequestWithBody<CreateUserModel>,
   res: Response
 ) => {
-  const { firstName, lastName, email, password, about } = req.body;
+  const { firstName, lastName, avatar, email, password, about } = req.body;
 
   try {
     const existingUser = await usersRepo.checkIfEmailIsAlreadyOccupied(email);
@@ -36,6 +36,7 @@ const createUser = async (
     const user = await usersService.createUser(
       firstName,
       lastName,
+      avatar,
       email,
       password,
       about

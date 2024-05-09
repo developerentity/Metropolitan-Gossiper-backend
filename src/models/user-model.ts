@@ -3,6 +3,7 @@ import mongoose, { Document, Schema } from "mongoose";
 export interface IUser {
   firstName: string;
   lastName: string;
+  avatar: string;
   email: string;
   password: string;
   about: string;
@@ -24,6 +25,9 @@ const UserSchema: Schema = new Schema(
     lastName: {
       type: String,
       required: true,
+    },
+    avatar: {
+      type: String,
     },
     email: {
       type: String,
