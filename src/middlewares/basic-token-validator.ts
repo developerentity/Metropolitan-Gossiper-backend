@@ -10,7 +10,9 @@ export async function basicTokenValidator(
   next: NextFunction
 ) {
   try {
-    const currentAccessToken = req.headers.authorization?.split(" ")[1];
+    const [type, token] = req.headers.authorization?.split(" ") ?? [];
+    const currentAccessToken = type === "Bearer" ? token : undefined;
+
     if (!currentAccessToken)
       return res
         .status(HTTP_STATUSES.UNAUTHORIZED_401)
@@ -38,10 +40,6 @@ export async function basicTokenValidator(
           .json({ error: "User data by ID not fount" });
       }
 
-      const { accessToken, refreshToken } = await jwtService.generateTokens(
-        userData._id
-      );
-      res.cookie("refresh-token", refreshToken, cookieOptions);
       req.user = userData;
       next();
     }
