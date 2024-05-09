@@ -14,7 +14,7 @@ const transformToViewModel = (gossip: IGossipModel): GossipViewModel => {
     id: gossip._id.toHexString(),
     title: gossip.title,
     content: gossip.content,
-    contents: gossip.comments,
+    comments: gossip.comments,
     imageUrl: gossip.imageUrl,
     author: gossip.author,
     likes: gossip.likes,

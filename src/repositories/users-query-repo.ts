@@ -24,10 +24,6 @@ export const usersQueryRepo = {
       .sort({ [sortField]: sortOrder })
       .skip((page - 1) * limit)
       .limit(limit)
-      .populate("gossips")
-      .select(
-        `firstName lastName about gossips comments likedGossips likedComments`
-      );
 
     return {
       totalItems: totalUsers,
@@ -37,9 +33,7 @@ export const usersQueryRepo = {
     };
   },
   async findUserById(id: string): Promise<IUserModel | null> {
-    const user = await User.findById(id)
-      .populate("gossips")
-      .select(" about gossips likedGossips");
+    const user = await User.findById(id);
     return user;
   },
 };
