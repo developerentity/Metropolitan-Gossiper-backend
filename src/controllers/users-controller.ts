@@ -16,9 +16,9 @@ import { usersQueryRepo } from "../repositories/users-query-repo";
 import { usersRepo } from "../repositories/users-repo";
 import { UpdateUserModel } from "../models/users/update-user-model";
 import Logging from "../library/Logging";
-import { IUserModel } from "../models/user-model";
 import { EXPIRES_TOKEN } from "../config";
 import { jwtService } from "../application/jwt-service";
+import { UserViewModel } from "../models/users/user-view-model";
 
 const createUser = async (
   req: RequestWithBody<CreateUserModel>,
@@ -96,10 +96,10 @@ const readUser = async (
 
 const readAll = async (
   req: RequestWithQuery<QueryUsersModel>,
-  res: Response<ItemsListViewModel<IUserModel> | ErrorResponse>
+  res: Response<ItemsListViewModel<UserViewModel> | ErrorResponse>
 ) => {
   try {
-    const foundUsers: ItemsListViewModel<IUserModel> =
+    const foundUsers: ItemsListViewModel<UserViewModel> =
       await usersQueryRepo.getAllUsers({
         limit: +req.query.pageSize,
         page: +req.query.pageNumber,

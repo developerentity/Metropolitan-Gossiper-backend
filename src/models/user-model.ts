@@ -14,7 +14,10 @@ export interface IUser {
   likedComments: string[];
 }
 
-export interface IUserModel extends IUser, Document {}
+export interface IUserModel extends IUser, Document {
+  createdAt: Date;
+  updatedAt: Date;
+}
 
 const UserSchema: Schema = new Schema(
   {
