@@ -12,16 +12,28 @@ export const usersQueryRepo = {
     page: number;
     sortField: string;
     sortOrder: string;
+    searchQuery: string;
   }): Promise<ItemsListViewModel<UserViewModel>> {
     const limit = queryParams.limit || 10;
     const page = queryParams.page || 1;
     const sortField = queryParams.sortField || "createdAt";
     const sortOrder = queryParams.sortOrder === "desc" ? -1 : 1;
+    const searchQuery = queryParams.searchQuery || "";
 
-    const totalUsers = await User.countDocuments();
+    const totalUsers = await User.countDocuments({
+      $or: [
+        { firstName: { $regex: searchQuery, $options: "i" } },
+        { lastName: { $regex: searchQuery, $options: "i" } },
+      ],
+    });
     const totalPages = Math.ceil(totalUsers / limit);
 
-    const users = await User.find()
+    const users = await User.find({
+      $or: [
+        { firstName: { $regex: searchQuery, $options: "i" } },
+        { lastName: { $regex: searchQuery, $options: "i" } },
+      ],
+    })
       .sort({ [sortField]: sortOrder })
       .skip((page - 1) * limit)
       .limit(limit);

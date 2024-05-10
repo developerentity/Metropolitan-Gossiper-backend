@@ -105,6 +105,7 @@ const readAll = async (
         page: +req.query.pageNumber,
         sortField: req.query.sortField,
         sortOrder: req.query.sortOrder,
+        searchQuery: req.query.searchQuery,
       });
 
     res.status(HTTP_STATUSES.OK_200).json(foundUsers);
