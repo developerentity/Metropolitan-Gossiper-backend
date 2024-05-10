@@ -3,4 +3,5 @@ export type QueryUsersModel = {
   pageNumber: string;
   sortField: string;
   sortOrder: string;
+  searchQuery: string;
 };
