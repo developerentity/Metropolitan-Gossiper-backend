@@ -2,8 +2,8 @@ import * as dotenv from "dotenv";
 dotenv.config();
 
 const {
+  BASE_URL,
   MONGO_URI,
-  BACKEND_URL,
   PORT,
   SECRET_ACCESS_TOKEN,
   REFRESH_ACCESS_TOKEN,
@@ -13,8 +13,8 @@ const {
   APP_EMAIL_PASS,
 } = process.env;
 export {
+  BASE_URL,
   MONGO_URI,
-  BACKEND_URL,
   PORT,
   SECRET_ACCESS_TOKEN,
   REFRESH_ACCESS_TOKEN,

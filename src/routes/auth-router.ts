@@ -17,6 +17,8 @@ router.post(
 );
 router.post("/auth/signin", signinValidator, validate, authController.signin);
 router.post("/auth/refresh", authController.refreshToken);
+router.get("/verify/:userId/:token", authController.verifyEmail);
+router.post("/resend-registration-code", authController.resendRegistrationCode);
 router.get("/", basicTokenValidator, authController.getAuthData);
 router.delete("/auth/signout", authController.signout);
 

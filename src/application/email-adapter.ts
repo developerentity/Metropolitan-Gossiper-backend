@@ -11,11 +11,15 @@ const transporter = nodemailer.createTransport({
 
 export const emailsAdapter = {
   async sendEmail(email: string, subject: string, html: string) {
-    await transporter.sendMail({
+    const result = await transporter.sendMail({
       from: `Metropolitan Gossiper <${process.env.APP_EMAIL}>`,
       to: email,
       subject,
       html,
     });
+    const failed = result.rejected.concat(result.pending).filter(Boolean);
+    if (failed.length) {
+      throw new Error(`Email(s) (${failed.join(", ")}) could not be sent`);
+    }
   },
 };
