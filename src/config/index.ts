@@ -2,18 +2,24 @@ import * as dotenv from "dotenv";
 dotenv.config();
 
 const {
-  URI,
+  MONGO_URI,
+  BACKEND_URL,
   PORT,
   SECRET_ACCESS_TOKEN,
   REFRESH_ACCESS_TOKEN,
   EXPIRES_TOKEN,
   EXPIRES_REFRESH_TOKEN,
+  APP_EMAIL,
+  APP_EMAIL_PASS,
 } = process.env;
 export {
-  URI,
+  MONGO_URI,
+  BACKEND_URL,
   PORT,
   SECRET_ACCESS_TOKEN,
   REFRESH_ACCESS_TOKEN,
   EXPIRES_TOKEN,
   EXPIRES_REFRESH_TOKEN,
+  APP_EMAIL,
+  APP_EMAIL_PASS,
 };
