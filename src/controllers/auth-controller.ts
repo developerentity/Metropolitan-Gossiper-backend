@@ -96,9 +96,31 @@ const refreshToken = async (req: Request, res: Response) => {
   }
 };
 
+const verifyEmail = async (req: Request, res: Response) => {
+  const { token, userId } = req.params;
+
+  try {
+    const result = await usersService.confirmEmail(userId, token);
+    if (result) {
+      res.sendStatus(HTTP_STATUSES.CREATED_201);
+    } else {
+      res.sendStatus(HTTP_STATUSES.BAD_REQUEST_400);
+    }
+  } catch (error) {
+    Logging.error(error);
+    return res
+      .status(HTTP_STATUSES.INTERNAL_SERVER_ERROR_500)
+      .json({ message: "An error occurred while logging the user." });
+  }
+};
+
+const resendRegistrationCode = async (req: Request, res: Response) => {};
+
 export default {
   getAuthData,
   signin,
   signout,
   refreshToken,
+  verifyEmail,
+  resendRegistrationCode,
 };

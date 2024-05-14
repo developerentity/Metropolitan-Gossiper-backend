@@ -1,14 +1,15 @@
 import { emailsAdapter } from "../application/email-adapter";
 import { BASE_URL } from "../config";
-import { IUserModel } from "../models/user-model";
 
 export const emailManager = {
-  async sendEmailConfirmationMessage(user: IUserModel) {
-    const code = user.emailConfirmation.confirmationCode;
-    const userId = user._id;
-    const url = `${BASE_URL!}/account/verify/${userId}/${code}`;
+  async sendEmailConfirmationMessage(
+    email: string,
+    userId: string,
+    token: string
+  ) {
+    const url = `${BASE_URL!}/account/verify/${userId}/${token}`;
     await emailsAdapter.sendEmail(
-      user.email,
+      email,
       text({ url, host: BASE_URL! }),
       html({ url, host: BASE_URL! })
     );
