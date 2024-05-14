@@ -1,6 +1,12 @@
 import bcrypt from "bcrypt";
 import { usersRepo } from "../repositories/users-repo";
 import { IUser, IUserModel } from "../models/user-model";
+import { add } from "date-fns";
+import Logging from "../library/Logging";
+import { emailManager } from "../utils/emailManager";
+import { tokensRepo } from "../repositories/tokens-repo";
+import { IToken } from "../models/token-model";
+import { randomUUID } from "crypto";
 
 /**
  *  This is a BLL (Business Logic Layer).
@@ -30,9 +36,35 @@ export const usersService = {
       likedComments: [],
       likedGossips: [],
       gossips: [],
+      verified: false,
     };
 
-    return usersRepo.createUser(newUser);
+    const createdUser = await usersRepo.createUser(newUser);
+    if (!createdUser) return null;
+
+    const newToken: IToken = {
+      userId: createdUser._id,
+      token: randomUUID(),
+      expirationDate: add(new Date(), { hours: 0, minutes: 15 }),
+    };
+
+    const createdToken = await tokensRepo.create(newToken);
+
+    try {
+      await emailManager.sendEmailConfirmationMessage(
+        createdUser.email,
+        createdUser._id,
+        createdToken.token
+      );
+      await tokensRepo.addSentDate(createdToken._id, new Date());
+    } catch (error) {
+      Logging.error(error);
+      await usersRepo.deleteUser(createdUser._id);
+      await tokensRepo.delete(createdToken._id);
+      return null;
+    }
+
+    return createdUser;
   },
   async updateUser(id: string, updateOps: { about: string }): Promise<boolean> {
     return usersRepo.updateUser(id, updateOps);
@@ -55,5 +87,30 @@ export const usersService = {
     } else {
       return null;
     }
+  },
+  async resendVerification(user: IUserModel): Promise<boolean> {
+    const tokenData = await tokensRepo.findByUserId(user._id);
+    if (!tokenData) return false;
+
+    await emailManager.sendEmailConfirmationMessage(
+      user.email,
+      user._id,
+      tokenData.token
+    );
+    await tokensRepo.addSentDate(tokenData._id, new Date());
+    return true;
+  },
+  async confirmEmail(userId: string, token: string): Promise<boolean> {
+    const user = await usersRepo.findUserById(userId);
+    if (!user) return false;
+
+    const tokenData = await tokensRepo.findByIdAndToken(userId, token);
+    if (!tokenData) return false;
+
+    if (tokenData.expirationDate < new Date()) return false;
+
+    await usersRepo.updateVerification(userId);
+    await tokensRepo.delete(tokenData._id);
+    return true;
   },
 };

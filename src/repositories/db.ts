@@ -1,9 +1,9 @@
 import mongoose from "mongoose";
 
-import { URI } from "../config";
+import { MONGO_URI } from "../config";
 import Logging from "../library/Logging";
 
-const mongoDB = URI || "mongodb://0.0.0.0:27017";
+const mongoDB = MONGO_URI || "mongodb://0.0.0.0:27017";
 
 export async function runDB() {
   try {

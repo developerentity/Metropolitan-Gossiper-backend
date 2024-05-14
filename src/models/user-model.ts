@@ -12,6 +12,7 @@ export interface IUser {
   likedGossips: string[];
   comments: string[];
   likedComments: string[];
+  verified: boolean;
 }
 
 export interface IUserModel extends IUser, Document {
@@ -52,6 +53,10 @@ const UserSchema: Schema = new Schema(
     likedGossips: [{ type: mongoose.Schema.Types.ObjectId, ref: "Gossip" }],
     comments: [{ type: mongoose.Schema.Types.ObjectId, ref: "Comment" }],
     likedComments: [{ type: mongoose.Schema.Types.ObjectId, ref: "Comment" }],
+    verified: {
+      type: Boolean,
+      required: true,
+    },
   },
   { timestamps: true }
 );

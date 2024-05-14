@@ -1,5 +1,3 @@
-import { ObjectId } from "mongodb";
-
 import User, { IUser, IUserModel } from "../models/user-model";
 
 /**
@@ -17,7 +15,7 @@ export const usersRepo = {
     const result = await User.updateOne({ _id: id }, { $set: updateOps });
     return result.modifiedCount === 1;
   },
-  async findUserById(id: ObjectId): Promise<IUserModel | null> {
+  async findUserById(id: string): Promise<IUserModel | null> {
     return await User.findById(id).populate("gossips");
   },
   async findByEmail(email: string): Promise<IUserModel | null> {
@@ -30,5 +28,9 @@ export const usersRepo = {
   async checkIfEmailIsAlreadyOccupied(email: string): Promise<boolean> {
     const existingUser = await User.findOne({ email });
     return !!existingUser;
+  },
+  async updateVerification(userId: string): Promise<boolean> {
+    const result = await User.updateOne({ _id: userId }, { verified: true });
+    return result.modifiedCount === 1;
   },
 };

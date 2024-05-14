@@ -96,9 +96,54 @@ const refreshToken = async (req: Request, res: Response) => {
   }
 };
 
+const verifyEmail = async (req: Request, res: Response) => {
+  const { token, userId } = req.params;
+
+  try {
+    const result = await usersService.confirmEmail(userId, token);
+    if (result) {
+      res.sendStatus(HTTP_STATUSES.CREATED_201);
+    } else {
+      res.sendStatus(HTTP_STATUSES.BAD_REQUEST_400);
+    }
+  } catch (error) {
+    Logging.error(error);
+    return res
+      .status(HTTP_STATUSES.INTERNAL_SERVER_ERROR_500)
+      .json({ message: "An error occurred while logging the user." });
+  }
+};
+
+const resendVerification = async (req: Request, res: Response) => {
+  const user = req.user;
+  const email = req.body.email;
+
+  try {
+    if (user.email !== email)
+      return res.sendStatus(HTTP_STATUSES.FORBIDDEN_403);
+
+    const isSent = await usersService.resendVerification(user);
+
+    if (!isSent) {
+      return res
+        .status(HTTP_STATUSES.BAD_REQUEST_400)
+        .json({ error: "This user has already verified" });
+    }
+
+    return res.sendStatus(HTTP_STATUSES.OK_200);
+  } catch (error) {
+    Logging.error(error);
+    return res
+      .status(HTTP_STATUSES.INTERNAL_SERVER_ERROR_500)
+      .json({ message: "An error occurred while fetching user data." });
+  }
+};
+
 export default {
   getAuthData,
   signin,
   signout,
   refreshToken,
+  verifyEmail,
+  resendVerification,
 };
