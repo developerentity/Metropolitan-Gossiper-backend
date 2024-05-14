@@ -11,6 +11,9 @@ export const tokensRepo = {
   ): Promise<ITokenModel | null> {
     return await Token.findOne({ userId, token });
   },
+  async findByUserId(userId: string): Promise<ITokenModel | null> {
+    return await Token.findOne({ userId });
+  },
   async addSentDate(tokenId: ObjectId, date: Date): Promise<boolean> {
     const result = await Token.updateOne(
       { _id: tokenId },

@@ -88,6 +88,18 @@ export const usersService = {
       return null;
     }
   },
+  async resendVerification(user: IUserModel): Promise<boolean> {
+    const tokenData = await tokensRepo.findByUserId(user._id);
+    if (!tokenData) return false;
+
+    await emailManager.sendEmailConfirmationMessage(
+      user.email,
+      user._id,
+      tokenData.token
+    );
+    await tokensRepo.addSentDate(tokenData._id, new Date());
+    return true;
+  },
   async confirmEmail(userId: string, token: string): Promise<boolean> {
     const user = await usersRepo.findUserById(userId);
     if (!user) return false;
