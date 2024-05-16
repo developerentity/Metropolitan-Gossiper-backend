@@ -5,56 +5,65 @@ import {
 } from "@aws-sdk/client-s3";
 import { BUCKET_NAME } from "../config";
 import { s3 } from "../application/s3-adapter";
-import sharp from "sharp";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import Jimp from "jimp";
+import { randomUUID } from "crypto";
 
-const getImageNameWithDate = (imageName: string): string =>
-  imageName.concat(new Date().toString());
+// const getImageNameWithDate = (imageName: string): string =>
+//   imageName.concat(new Date().toString());
 
 export const s3Manager = {
-  async sendFile(
+  async create(
     name: string,
     file: Buffer,
     contentType: string
   ): Promise<string | null> {
-    const imageName = getImageNameWithDate(name);
+    if (name) {
+      const imageName = randomUUID.toString();
 
-    const buffer = await sharp(file).resize({
-      height: 1920,
-      width: 1080,
-      fit: "contain",
-    });
+      const image = await Jimp.read(file);
+      image.contain(1080, 1920);
 
-    const params = {
-      Bucket: BUCKET_NAME!,
-      Key: imageName,
-      Body: buffer,
-      ContentType: contentType,
-    };
+      const buffer = await image.getBufferAsync(Jimp.MIME_PNG);
 
-    const command = new PutObjectCommand(params);
-    await s3.send(command);
+      const params = {
+        Bucket: BUCKET_NAME!,
+        Key: imageName,
+        Body: buffer,
+        ContentType: contentType,
+      };
 
-    return imageName;
+      const command = new PutObjectCommand(params);
+      await s3.send(command);
+
+      return imageName;
+    }
+    return null;
   },
-  async getFile(imageName: string) {
-    const getObjectParams = {
-      Bucket: BUCKET_NAME!,
-      Key: imageName,
-    };
+  async read(name: string | undefined) {
+    if (name) {
+      const getObjectParams = {
+        Bucket: BUCKET_NAME!,
+        Key: name,
+      };
 
-    const command = new GetObjectCommand(getObjectParams);
-    const url = await getSignedUrl(s3, command, { expiresIn: 3600 });
-    return url;
+      const command = new GetObjectCommand(getObjectParams);
+      const url = await getSignedUrl(s3, command, { expiresIn: 3600 });
+      return url;
+    }
+    return null;
   },
-  async deleteFile(fileName: string) {
-    const params = {
-      Bucket: BUCKET_NAME!,
-      Key: fileName,
-    };
+  async delete(name: string) {
+    if (name) {
+      const params = {
+        Bucket: BUCKET_NAME!,
+        Key: name,
+      };
 
-    const command = new DeleteObjectCommand(params);
-    const res = await s3.send(command);
-    return res;
+      const command = new DeleteObjectCommand(params);
+      const res = await s3.send(command);
+      return res;
+    }
+    return null;
   },
 };

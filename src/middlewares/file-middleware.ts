@@ -5,7 +5,7 @@ import { HTTP_STATUSES } from "../http-statuses";
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
-function fileUploadMiddleware(req: Request, res: Response, next: NextFunction) {
+function fileMiddleware(req: Request, res: Response, next: NextFunction) {
   upload.single("image")(req, res, (err) => {
     if (err instanceof multer.MulterError) {
       return res
@@ -20,4 +20,4 @@ function fileUploadMiddleware(req: Request, res: Response, next: NextFunction) {
   });
 }
 
-export default fileUploadMiddleware;
+export default fileMiddleware;

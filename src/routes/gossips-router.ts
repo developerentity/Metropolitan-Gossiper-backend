@@ -11,13 +11,15 @@ import { gossipCreateValidator } from "../validators/gossip-create-validator";
 import { validate } from "../middlewares/validate";
 import { gossipUpdateValidator } from "../validators/gossip-update-validator";
 import { commentCreateValidator } from "../validators/comment-create-validator";
+import fileMiddleware from "../middlewares/file-middleware";
 const router = express.Router();
 
 router.post(
   "/create",
   basicTokenValidator,
-  gossipCreateValidator,
-  validate,
+  // gossipCreateValidator,
+  // validate,
+  fileMiddleware,
   gossipsController.createGossip
 );
 router.get("/get/:gossipId", gossipsController.readGossip);

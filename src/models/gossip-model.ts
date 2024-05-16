@@ -3,7 +3,7 @@ import mongoose, { Document, Schema, Model } from "mongoose";
 export interface IGossip {
   title: string;
   content: string;
-  imageUrl?: string;
+  imageName: string;
   author: string;
   comments: string[];
   likes: string[];
@@ -22,7 +22,7 @@ const GossipSchema: Schema = new Schema(
   {
     title: { type: String, required: true },
     content: { type: String, required: true },
-    imageUrl: String,
+    imageName: String,
     author: {
       type: Schema.Types.ObjectId,
       ref: "User",

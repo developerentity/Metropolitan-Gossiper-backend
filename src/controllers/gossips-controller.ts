@@ -16,7 +16,8 @@ import { ErrorResponse, ItemsListViewModel } from "../types/response-types";
 import { GossipViewModel } from "../models/gossips/gossip-view-model";
 
 const createGossip = async (req: Request, res: Response) => {
-  const { title, content, imageUrl } = req.body;
+  const { title, content } = req.body;
+  const file = req.file;
   const author = req.user._id;
 
   try {
@@ -24,7 +25,7 @@ const createGossip = async (req: Request, res: Response) => {
       author,
       title,
       content,
-      imageUrl
+      file
     );
 
     return res.status(HTTP_STATUSES.CREATED_201).json({ createdGossip });

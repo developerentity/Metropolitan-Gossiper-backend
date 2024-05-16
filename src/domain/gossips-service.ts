@@ -1,5 +1,7 @@
+import Logging from "../library/Logging";
 import { IGossip, IGossipModel } from "../models/gossip-model";
 import { gossipsRepo } from "../repositories/gossips-repo";
+import { s3Manager } from "../utils/s3-manager";
 
 /**
  *  This is a BLL (Business Logic Layer).
@@ -10,12 +12,20 @@ export const gossipsService = {
     author: string,
     title: string,
     content: string,
-    imageUrl?: string
+    file: { filename: string; buffer: Buffer; mimetype: string } | undefined
   ): Promise<IGossipModel | null> {
+    let imageName = "";
+
+    if (file) {
+      imageName =
+        (await s3Manager.create(file.filename, file.buffer, file.mimetype)) ||
+        "";
+    }
+
     const gossip: IGossip = {
       title,
       content,
-      imageUrl: imageUrl || "",
+      imageName,
       author,
       comments: [],
       likes: [],
@@ -40,6 +50,10 @@ export const gossipsService = {
     return gossipsRepo.unlikeGossip(author, gossipId);
   },
   async deleteGossip(gossipId: string): Promise<IGossipModel | null> {
+    const gossip = await gossipsRepo.findGossipById(gossipId);
+    if (!gossip) return null;
+    const res = await s3Manager.delete(gossip.imageName);
+    Logging.warn(res);
     return gossipsRepo.deleteAndDissociateFromUser(gossipId);
   },
 };

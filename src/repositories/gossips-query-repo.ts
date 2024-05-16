@@ -3,19 +3,23 @@ import Gossip, { IGossipModel } from "../models/gossip-model";
 import { GossipsQueryFilter } from "../models/gossips/gossip-query-filter";
 import { ItemsListViewModel } from "../types/response-types";
 import { GossipViewModel } from "../models/gossips/gossip-view-model";
+import { s3Manager } from "../utils/s3-manager";
 
 /**
  * This is the DAL (Data Access Layer).
  * Which is responsible for Read only operations.
  */
 
-const transformToViewModel = (gossip: IGossipModel): GossipViewModel => {
+const transformToViewModel = async (
+  gossip: IGossipModel
+): Promise<GossipViewModel> => {
+  const imageUrl = (await s3Manager.read(gossip.imageName)) || "";
   return {
     id: gossip._id.toHexString(),
     title: gossip.title,
     content: gossip.content,
     comments: gossip.comments,
-    imageUrl: gossip.imageUrl,
+    imageUrl: imageUrl,
     author: gossip.author,
     likes: gossip.likes,
   };
@@ -58,7 +62,9 @@ export const gossipsQueryRepo = {
       .limit(limit)
       .populate("comments");
 
-    const transformedGossips = gossips.map((g) => transformToViewModel(g));
+    const transformedGossips = await Promise.all(
+      gossips.map((g) => transformToViewModel(g))
+    );
 
     return {
       totalItems: totalGossips,
