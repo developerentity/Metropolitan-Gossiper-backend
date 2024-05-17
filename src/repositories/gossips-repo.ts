@@ -10,7 +10,7 @@ export const gossipsRepo = {
   },
   async updateGossip(
     gossipId: string,
-    updateOps: { content: string; imageUrl?: string }
+    updateOps: { content: string; imageName?: string }
   ): Promise<IGossipModel | null> {
     const result = await Gossip.findByIdAndUpdate(gossipId, updateOps, {
       new: true,

@@ -3,7 +3,7 @@ import mongoose, { Document, Schema, Model } from "mongoose";
 export interface IGossip {
   title: string;
   content: string;
-  imageName: string | null;
+  imageName: string | null | undefined;
   author: string;
   comments: string[];
   likes: string[];

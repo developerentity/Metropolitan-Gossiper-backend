@@ -28,6 +28,7 @@ router.patch(
   "/update/:gossipId",
   checkGossipIdValidity,
   basicTokenValidator,
+  fileMiddleware,
   gossipUpdateValidator,
   validate,
   gossipsController.updateGossip

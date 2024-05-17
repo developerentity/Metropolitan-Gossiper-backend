@@ -3,7 +3,7 @@ export type GossipViewModel = {
   title: string;
   content: string;
   comments: string[];
-  imageUrl: string | null;
+  imageUrl: string | null | undefined;
   author: string;
   likes: string[];
 };

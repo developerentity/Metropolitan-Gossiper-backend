@@ -86,8 +86,10 @@ const updateGossip = async (
   req: RequestWithParamsAndBody<URIParamsGossipModel, UpdateGossipModel>,
   res: Response
 ) => {
-  const author = req.user._id;
   const { gossipId } = req.params;
+  const { content } = req.body;
+  const file = req.file;
+  const author = req.user._id;
 
   try {
     const gossip = await gossipsRepo.findGossipById(gossipId);
@@ -103,7 +105,10 @@ const updateGossip = async (
         .status(HTTP_STATUSES.FORBIDDEN_403)
         .json({ error: "Forbidden" });
 
-    const updatedGossip = await gossipsService.updateGossip(gossipId, req.body);
+    const updatedGossip = await gossipsService.updateGossip(gossipId, {
+      content,
+      file,
+    });
 
     return res
       .status(HTTP_STATUSES.CREATED_201)
