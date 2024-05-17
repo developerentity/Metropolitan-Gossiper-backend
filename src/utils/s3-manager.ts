@@ -6,42 +6,46 @@ import {
 import { BUCKET_NAME } from "../config";
 import { s3 } from "../application/s3-adapter";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import Jimp from "jimp";
-import { randomUUID } from "crypto";
+import * as crypto from "crypto";
+import { imageSizeManager } from "./image-size-manager";
+import Logging from "../library/Logging";
 
-// const getImageNameWithDate = (imageName: string): string =>
-//   imageName.concat(new Date().toString());
+const generateFileName = (bytes = 32) =>
+  crypto.randomBytes(bytes).toString("hex");
 
 export const s3Manager = {
-  async create(
-    name: string,
-    file: Buffer,
-    contentType: string
-  ): Promise<string | null> {
-    if (name) {
-      const imageName = randomUUID.toString();
+  async create(file: {
+    filename: string;
+    buffer: Buffer;
+    mimetype: string;
+  }): Promise<string | null> {
+    try {
+      const imageName = generateFileName();
 
-      const image = await Jimp.read(file);
-      image.contain(1080, 1920);
-
-      const buffer = await image.getBufferAsync(Jimp.MIME_PNG);
+      const croppedImgBuffer = await imageSizeManager.contain(
+        file.buffer,
+        1080,
+        1920
+      );
 
       const params = {
         Bucket: BUCKET_NAME!,
         Key: imageName,
-        Body: buffer,
-        ContentType: contentType,
+        Body: croppedImgBuffer,
+        ContentType: file.mimetype,
       };
 
       const command = new PutObjectCommand(params);
       await s3.send(command);
 
       return imageName;
+    } catch (error) {
+      Logging.error("S3 Manager error ======== " + error);
+      return null;
     }
-    return null;
   },
-  async read(name: string | undefined) {
-    if (name) {
+  async read(name: string) {
+    try {
       const getObjectParams = {
         Bucket: BUCKET_NAME!,
         Key: name,
@@ -50,11 +54,13 @@ export const s3Manager = {
       const command = new GetObjectCommand(getObjectParams);
       const url = await getSignedUrl(s3, command, { expiresIn: 3600 });
       return url;
+    } catch (error) {
+      Logging.error("S3 Manager error ======== " + error);
+      return null;
     }
-    return null;
   },
   async delete(name: string) {
-    if (name) {
+    try {
       const params = {
         Bucket: BUCKET_NAME!,
         Key: name,
@@ -63,7 +69,9 @@ export const s3Manager = {
       const command = new DeleteObjectCommand(params);
       const res = await s3.send(command);
       return res;
+    } catch (error) {
+      Logging.error("S3 Manager error ======== " + error);
+      return null;
     }
-    return null;
   },
 };

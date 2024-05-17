@@ -14,13 +14,8 @@ export const gossipsService = {
     content: string,
     file: { filename: string; buffer: Buffer; mimetype: string } | undefined
   ): Promise<IGossipModel | null> {
-    let imageName = "";
-
-    if (file) {
-      imageName =
-        (await s3Manager.create(file.filename, file.buffer, file.mimetype)) ||
-        "";
-    }
+    let imageName = null;
+    if (file) imageName = await s3Manager.create(file);
 
     const gossip: IGossip = {
       title,
@@ -52,7 +47,7 @@ export const gossipsService = {
   async deleteGossip(gossipId: string): Promise<IGossipModel | null> {
     const gossip = await gossipsRepo.findGossipById(gossipId);
     if (!gossip) return null;
-    const res = await s3Manager.delete(gossip.imageName);
+    const res = gossip.imageName && (await s3Manager.delete(gossip.imageName));
     Logging.warn(res);
     return gossipsRepo.deleteAndDissociateFromUser(gossipId);
   },

@@ -17,9 +17,9 @@ const router = express.Router();
 router.post(
   "/create",
   basicTokenValidator,
-  // gossipCreateValidator,
-  // validate,
   fileMiddleware,
+  gossipCreateValidator,
+  validate,
   gossipsController.createGossip
 );
 router.get("/get/:gossipId", gossipsController.readGossip);

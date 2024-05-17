@@ -13,7 +13,8 @@ import { s3Manager } from "../utils/s3-manager";
 const transformToViewModel = async (
   gossip: IGossipModel
 ): Promise<GossipViewModel> => {
-  const imageUrl = (await s3Manager.read(gossip.imageName)) || "";
+  const imageName = gossip.imageName;
+  const imageUrl = imageName && (await s3Manager.read(imageName));
   return {
     id: gossip._id.toHexString(),
     title: gossip.title,
