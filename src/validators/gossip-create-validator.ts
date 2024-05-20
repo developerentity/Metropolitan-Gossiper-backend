@@ -12,5 +12,4 @@ export const gossipCreateValidator = [
   ).isLength({
     max: 5000,
   }),
-  body("imageUrl", "Invalid image URL").optional().isURL(),
 ];

@@ -11,11 +11,13 @@ import { gossipCreateValidator } from "../validators/gossip-create-validator";
 import { validate } from "../middlewares/validate";
 import { gossipUpdateValidator } from "../validators/gossip-update-validator";
 import { commentCreateValidator } from "../validators/comment-create-validator";
+import fileMiddleware from "../middlewares/file-middleware";
 const router = express.Router();
 
 router.post(
   "/create",
   basicTokenValidator,
+  fileMiddleware,
   gossipCreateValidator,
   validate,
   gossipsController.createGossip
@@ -26,6 +28,7 @@ router.patch(
   "/update/:gossipId",
   checkGossipIdValidity,
   basicTokenValidator,
+  fileMiddleware,
   gossipUpdateValidator,
   validate,
   gossipsController.updateGossip
