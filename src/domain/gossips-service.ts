@@ -11,7 +11,7 @@ export const gossipsService = {
     author: string,
     title: string,
     content: string,
-    file: { filename: string; buffer: Buffer; mimetype: string } | undefined
+    file?: { size: number; buffer: Buffer; mimetype: string }
   ): Promise<IGossipModel | null> {
     let imageName = undefined;
     if (file) imageName = await s3Manager.create(file);
@@ -28,22 +28,27 @@ export const gossipsService = {
     return gossipsRepo.createAndAssociateWithUser(gossip);
   },
   async updateGossip(
-    id: string,
+    gossip: IGossipModel,
     updateOps: {
       content: string;
-      file: { filename: string; buffer: Buffer; mimetype: string } | undefined;
+      file?: { size: number; buffer: Buffer; mimetype: string };
     }
   ): Promise<IGossipModel | null> {
+    const oldImageName = gossip.imageName;
+    let imageName: string | undefined | null = undefined;
 
-    let imageName = undefined;
-    if (updateOps.file) imageName = await s3Manager.create(updateOps.file);
+    if (updateOps.file && updateOps.file.size !== 0) {
+      imageName = await s3Manager.create(updateOps.file);
 
-    const processedOps = {
+      if (oldImageName) await s3Manager.delete(oldImageName);
+    }
+
+    const processedOps: Partial<IGossip> = {
       content: updateOps.content,
-      imageUrl: imageName,
+      imageName,
     };
 
-    return gossipsRepo.updateGossip(id, processedOps);
+    return gossipsRepo.updateGossip(gossip._id, processedOps);
   },
   async likeGossip(author: string, gossipId: string): Promise<void> {
     return gossipsRepo.likeGossip(author, gossipId);

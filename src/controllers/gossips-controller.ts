@@ -104,8 +104,7 @@ const updateGossip = async (
       return res
         .status(HTTP_STATUSES.FORBIDDEN_403)
         .json({ error: "Forbidden" });
-
-    const updatedGossip = await gossipsService.updateGossip(gossipId, {
+    const updatedGossip = await gossipsService.updateGossip(gossip, {
       content,
       file,
     });
