@@ -4,14 +4,14 @@ import Logging from "../library/Logging";
 import { usersService } from "../domain/users-service";
 import { jwtService } from "../application/jwt-service";
 import { HTTP_STATUSES } from "../http-statuses";
-import { usersRepo } from "../repositories/users-repo";
 import { EXPIRES_TOKEN } from "../config";
+import { usersQueryRepo } from "../repositories/users-query-repo";
 
 const getAuthData = async (req: Request, res: Response) => {
   const userId = req.user._id;
 
   try {
-    const userData = await usersRepo.findUserById(userId);
+    const userData = await usersQueryRepo.findUserById(userId);
 
     if (!userData) {
       return res
@@ -19,6 +19,7 @@ const getAuthData = async (req: Request, res: Response) => {
         .json({ error: "User not found" });
     }
 
+    Logging.warn(userData);
     return res.status(HTTP_STATUSES.OK_200).json(userData);
   } catch (error) {
     Logging.error(error);
@@ -32,16 +33,20 @@ const signin = async (req: Request, res: Response) => {
   const { email, password } = req.body;
 
   try {
-    const user = await usersService.checkCredentials(email, password);
+    const userIntrinsicData = await usersService.checkCredentials(
+      email,
+      password
+    );
+    const user = await usersQueryRepo.findUserById(userIntrinsicData?._id);
 
-    if (!user) {
+    if (!userIntrinsicData) {
       return res
         .status(HTTP_STATUSES.UNAUTHORIZED_401)
         .json({ error: "Invalid credentials" });
     }
 
     const { accessToken, refreshToken } = await jwtService.generateTokens(
-      user.id
+      userIntrinsicData._id
     );
 
     return res.status(HTTP_STATUSES.OK_200).json({
@@ -61,7 +66,7 @@ const signin = async (req: Request, res: Response) => {
 };
 
 const signout = async (req: Request, res: Response) => {
-  res.cookie("token", "", { maxAge: 0 }).sendStatus(HTTP_STATUSES.OK_200);
+  res.cookie("token", "", { maxAge: 0 }).sendStatus(HTTP_STATUSES.OK_200); // need to update according to new functional
 };
 
 const refreshToken = async (req: Request, res: Response) => {
@@ -76,7 +81,7 @@ const refreshToken = async (req: Request, res: Response) => {
 
   try {
     const userId = await jwtService.verifyRefreshJWT(previousRefreshToken);
-    const user = await usersRepo.findUserById(userId);
+    const user = await usersQueryRepo.findUserById(userId);
     const { accessToken, refreshToken } = await jwtService.generateTokens(
       userId
     );

@@ -56,6 +56,7 @@ export const usersQueryRepo = {
 const transformToViewModel = (user: IUserModel): UserViewModel => {
   return {
     id: user._id.toHexString(),
+    role: user.role,
     firstName: user.firstName,
     lastName: user.lastName,
     avatar: user.avatar,
