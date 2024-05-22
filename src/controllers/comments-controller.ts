@@ -53,8 +53,8 @@ const readCommentsByGossip = async (
     const foundComments: ItemsListViewModel<CommentViewModel> | null =
       await commentsQueryRepo.findCommentsByGossip(
         req.params.gossipId,
-        +req.query.pageSize,
-        +req.query.pageNumber
+        +req.query.pageNumber,
+        +req.query.pageSize
       );
 
     return res.status(HTTP_STATUSES.OK_200).json(foundComments);
