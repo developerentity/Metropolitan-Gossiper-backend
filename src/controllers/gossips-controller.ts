@@ -120,26 +120,16 @@ const updateGossip = async (
   }
 };
 
-const likeGossip = async (req: Request, res: Response) => {
+const likeItem = async (req: Request, res: Response) => {
   const author = req.user._id;
-  const { gossipId } = req.params;
+  const { itemId } = req.params;
 
   try {
-    const gossip = await gossipsRepo.findGossipById(gossipId);
-
-    if (!gossip) {
+    const result = await gossipsService.likeItem(author, itemId);
+    if (!result)
       return res
         .status(HTTP_STATUSES.NOT_FOUND_404)
-        .json({ message: "Gossip not found" });
-    }
-
-    if (gossip.likes.includes(author)) {
-      return res
-        .status(HTTP_STATUSES.BAD_REQUEST_400)
-        .json({ message: "This gossip have already been liked" });
-    }
-
-    await gossipsService.likeGossip(author, gossipId);
+        .json({ message: "Something went wrong" });
 
     return res.status(HTTP_STATUSES.OK_200).json({ message: "Liked" });
   } catch (error) {
@@ -150,29 +140,18 @@ const likeGossip = async (req: Request, res: Response) => {
   }
 };
 
-const unlikeGossip = async (req: Request, res: Response) => {
+const unlikeItem = async (req: Request, res: Response) => {
   const author = req.user._id;
-  const { gossipId } = req.params;
+  const { itemId } = req.params;
 
   try {
-    const gossip = await gossipsRepo.findGossipById(gossipId);
-    if (!gossip) {
+    const result = await gossipsService.unlikeItem(author, itemId);
+    if (!result)
       return res
         .status(HTTP_STATUSES.NOT_FOUND_404)
-        .json({ message: "Gossip not found" });
-    }
+        .json({ message: "Something went wrong" });
 
-    if (!gossip.likes.includes(author)) {
-      return res
-        .status(HTTP_STATUSES.BAD_REQUEST_400)
-        .json({ message: "This gossip haven't liked yet" });
-    }
-
-    await gossipsService.unlikeGossip(author, gossipId);
-
-    return res
-      .status(HTTP_STATUSES.OK_200)
-      .json({ message: "This gossip is no more liked" });
+    return res.status(HTTP_STATUSES.OK_200).json({ message: "unliked" });
   } catch (error) {
     Logging.error(error);
     return res.status(HTTP_STATUSES.INTERNAL_SERVER_ERROR_500).json({
@@ -217,7 +196,7 @@ export default {
   readGossip,
   readAll,
   updateGossip,
-  likeGossip,
-  unlikeGossip,
+  likeItem,
+  unlikeItem,
   deleteGossip,
 };

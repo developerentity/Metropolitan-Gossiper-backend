@@ -1,4 +1,6 @@
+import { IComment } from "../models/comment-model";
 import { IGossip, IGossipModel } from "../models/gossip-model";
+import { commentsRepo } from "../repositories/comments-repo";
 import { gossipsRepo } from "../repositories/gossips-repo";
 import { s3Manager } from "../utils/s3-manager";
 
@@ -50,16 +52,57 @@ export const gossipsService = {
 
     return gossipsRepo.updateGossip(gossip._id, processedOps);
   },
-  async likeGossip(author: string, gossipId: string): Promise<void> {
-    return gossipsRepo.likeGossip(author, gossipId);
+  async likeItem(author: string, itemId: string): Promise<boolean> {
+    const result = await this._defineLikedItemType(itemId);
+    if (!result) return false;
+    if (result.item.likes.includes(author)) return false;
+
+    switch (result.itemType) {
+      case "Gossip":
+        gossipsRepo.likeGossip(author, itemId);
+        return true;
+      case "Comment":
+        commentsRepo.likeComment(author, itemId);
+        return true;
+      default:
+        return false;
+    }
   },
-  async unlikeGossip(author: string, gossipId: string): Promise<void> {
-    return gossipsRepo.unlikeGossip(author, gossipId);
+  async unlikeItem(author: string, itemId: string): Promise<boolean> {
+    const result = await this._defineLikedItemType(itemId);
+    if (!result) return false;
+    if (!result.item.likes.includes(author)) return false;
+
+    switch (result.itemType) {
+      case "Gossip":
+        gossipsRepo.unlikeGossip(author, itemId);
+        return true;
+      case "Comment":
+        commentsRepo.unlikeComment(author, itemId);
+        return true;
+      default:
+        return false;
+    }
   },
   async deleteGossip(gossipId: string): Promise<IGossipModel | null> {
     const gossip = await gossipsRepo.findGossipById(gossipId);
     if (!gossip) return null;
     if (gossip.imageName) await s3Manager.delete(gossip.imageName);
     return gossipsRepo.deleteAndDissociateFromUser(gossipId);
+  },
+  async _defineLikedItemType(itemId: string): Promise<{
+    itemType: "Gossip" | "Comment";
+    item: IGossip | IComment;
+  } | null> {
+    const [gossip, comment] = await Promise.all([
+      gossipsRepo.findGossipById(itemId),
+      commentsRepo.findCommentById(itemId),
+    ]);
+
+    const item = gossip || comment;
+    const itemType = gossip ? "Gossip" : "Comment";
+
+    if (!item) return null;
+    return { itemType, item };
   },
 };
