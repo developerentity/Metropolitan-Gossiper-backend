@@ -84,6 +84,11 @@ export const gossipsService = {
         return false;
     }
   },
+  async getItemLikes(itemId: string): Promise<string[] | null> {
+    const result = await this._defineLikedItemType(itemId);
+    if (!result) return null;
+    return result.item.likes;
+  },
   async deleteGossip(gossipId: string): Promise<IGossipModel | null> {
     const gossip = await gossipsRepo.findGossipById(gossipId);
     if (!gossip) return null;

@@ -55,6 +55,11 @@ router.delete(
   basicTokenValidator,
   commentsController.deleteComment
 );
+router.get(
+  "/get/:itemId/likes",
+  checkItemIdValidity,
+  gossipsController.getItemLikes
+);
 router.post(
   "/:itemId/like",
   checkItemIdValidity,

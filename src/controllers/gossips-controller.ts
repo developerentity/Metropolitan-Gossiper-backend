@@ -120,6 +120,26 @@ const updateGossip = async (
   }
 };
 
+const getItemLikes = async (req: Request, res: Response) => {
+  const { itemId } = req.params;
+
+  try {
+    const likes = await gossipsService.getItemLikes(itemId);
+    if (!likes)
+      return res
+        .status(HTTP_STATUSES.NOT_FOUND_404)
+        .json({ message: "Something went wrong" });
+
+        Logging.warn(likes)
+    return res.status(HTTP_STATUSES.OK_200).send(likes);
+  } catch (error) {
+    Logging.error(error);
+    return res
+      .status(HTTP_STATUSES.INTERNAL_SERVER_ERROR_500)
+      .json({ message: "An error occurred while trying to get item's likes" });
+  }
+};
+
 const likeItem = async (req: Request, res: Response) => {
   const author = req.user._id;
   const { itemId } = req.params;
@@ -136,7 +156,7 @@ const likeItem = async (req: Request, res: Response) => {
     Logging.error(error);
     return res
       .status(HTTP_STATUSES.INTERNAL_SERVER_ERROR_500)
-      .json({ message: "An error occurred while trying to like the gossip." });
+      .json({ message: "An error occurred while trying to like the item." });
   }
 };
 
@@ -155,7 +175,7 @@ const unlikeItem = async (req: Request, res: Response) => {
   } catch (error) {
     Logging.error(error);
     return res.status(HTTP_STATUSES.INTERNAL_SERVER_ERROR_500).json({
-      message: "An error occurred while trying to unlike the gossip.",
+      message: "An error occurred while trying to unlike the item.",
     });
   }
 };
@@ -197,6 +217,7 @@ export default {
   readAll,
   updateGossip,
   likeItem,
+  getItemLikes,
   unlikeItem,
   deleteGossip,
 };
