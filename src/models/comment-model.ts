@@ -17,8 +17,8 @@ export interface ICommentModelStatic extends Model<ICommentModel> {
   deleteAndDissociateFromUserAndGossip(
     comment: string
   ): Promise<ICommentModel | null>;
-  likeComment(authorId: string, commentId: string): Promise<void>;
-  unlikeComment(authorId: string, commentId: string): Promise<void>;
+  likeComment(authorId: string, commentId: string): Promise<string[] | null>;
+  unlikeComment(authorId: string, commentId: string): Promise<string[] | null>;
 }
 
 const CommentSchema: Schema = new Schema(
@@ -77,9 +77,14 @@ CommentSchema.statics.likeComment = async function (
   await mongoose
     .model("User")
     .findByIdAndUpdate(authorId, { $push: { likedComments: commentId } });
-  await mongoose
+  const res = await mongoose
     .model("Comment")
-    .findByIdAndUpdate(commentId, { $push: { likes: authorId } });
+    .findByIdAndUpdate(
+      commentId,
+      { $push: { likes: authorId } },
+      { new: true }
+    );
+  return res?.likes || null;
 };
 
 CommentSchema.statics.unlikeComment = async function (
@@ -89,9 +94,14 @@ CommentSchema.statics.unlikeComment = async function (
   await mongoose
     .model("User")
     .findByIdAndUpdate(authorId, { $pull: { likedComments: commentId } });
-  await mongoose
+  const res = await mongoose
     .model("Comment")
-    .findByIdAndUpdate(commentId, { $pull: { likes: authorId } });
+    .findByIdAndUpdate(
+      commentId,
+      { $pull: { likes: authorId } },
+      { new: true }
+    );
+  return res?.likes || null;
 };
 
 export default mongoose.model<ICommentModel, ICommentModelStatic>(

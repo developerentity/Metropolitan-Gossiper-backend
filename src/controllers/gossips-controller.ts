@@ -120,66 +120,6 @@ const updateGossip = async (
   }
 };
 
-const getItemLikes = async (req: Request, res: Response) => {
-  const { itemId } = req.params;
-
-  try {
-    const likes = await gossipsService.getItemLikes(itemId);
-    if (!likes)
-      return res
-        .status(HTTP_STATUSES.NOT_FOUND_404)
-        .json({ message: "Something went wrong" });
-
-        Logging.warn(likes)
-    return res.status(HTTP_STATUSES.OK_200).send(likes);
-  } catch (error) {
-    Logging.error(error);
-    return res
-      .status(HTTP_STATUSES.INTERNAL_SERVER_ERROR_500)
-      .json({ message: "An error occurred while trying to get item's likes" });
-  }
-};
-
-const likeItem = async (req: Request, res: Response) => {
-  const author = req.user._id;
-  const { itemId } = req.params;
-
-  try {
-    const result = await gossipsService.likeItem(author, itemId);
-    if (!result)
-      return res
-        .status(HTTP_STATUSES.NOT_FOUND_404)
-        .json({ message: "Something went wrong" });
-
-    return res.status(HTTP_STATUSES.OK_200).json({ message: "Liked" });
-  } catch (error) {
-    Logging.error(error);
-    return res
-      .status(HTTP_STATUSES.INTERNAL_SERVER_ERROR_500)
-      .json({ message: "An error occurred while trying to like the item." });
-  }
-};
-
-const unlikeItem = async (req: Request, res: Response) => {
-  const author = req.user._id;
-  const { itemId } = req.params;
-
-  try {
-    const result = await gossipsService.unlikeItem(author, itemId);
-    if (!result)
-      return res
-        .status(HTTP_STATUSES.NOT_FOUND_404)
-        .json({ message: "Something went wrong" });
-
-    return res.status(HTTP_STATUSES.OK_200).json({ message: "unliked" });
-  } catch (error) {
-    Logging.error(error);
-    return res.status(HTTP_STATUSES.INTERNAL_SERVER_ERROR_500).json({
-      message: "An error occurred while trying to unlike the item.",
-    });
-  }
-};
-
 const deleteGossip = async (req: Request, res: Response) => {
   const author = req.user._id;
   const { gossipId } = req.params;
@@ -216,8 +156,5 @@ export default {
   readGossip,
   readAll,
   updateGossip,
-  likeItem,
-  getItemLikes,
-  unlikeItem,
   deleteGossip,
 };
