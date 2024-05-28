@@ -32,10 +32,16 @@ export const commentsService = {
 
     return commentsRepo.createAndAssociateWithUserAndGossip(comment);
   },
-  async likeComment(author: string, commentId: string): Promise<void> {
+  async likeComment(
+    author: string,
+    commentId: string
+  ): Promise<string[] | null> {
     return commentsRepo.likeComment(author, commentId);
   },
-  async unlikeComment(author: string, commentId: string): Promise<void> {
+  async unlikeComment(
+    author: string,
+    commentId: string
+  ): Promise<string[] | null> {
     return commentsRepo.unlikeComment(author, commentId);
   },
   async deleteComment(commentId: string): Promise<ICommentModel | null> {

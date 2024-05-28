@@ -25,10 +25,13 @@ export const gossipsRepo = {
   ): Promise<IGossipModel | null> {
     return await Gossip.deleteAndDissociateFromUser(gossipId);
   },
-  async likeGossip(author: string, gossipId: string): Promise<void> {
-    await Gossip.likeGossip(author, gossipId);
+  async likeGossip(author: string, gossipId: string): Promise<string[] | null> {
+    return await Gossip.likeGossip(author, gossipId);
   },
-  async unlikeGossip(author: string, gossipId: string): Promise<void> {
-    await Gossip.unlikeGossip(author, gossipId);
+  async unlikeGossip(
+    author: string,
+    gossipId: string
+  ): Promise<string[] | null> {
+    return await Gossip.unlikeGossip(author, gossipId);
   },
 };

@@ -14,8 +14,8 @@ export interface IGossipModel extends IGossip, Document {}
 export interface IGossipModelStatic extends Model<IGossipModel> {
   createAndAssociateWithUser(gossip: IGossip): Promise<IGossipModel>;
   deleteAndDissociateFromUser(gossipId: string): Promise<IGossipModel | null>;
-  likeGossip(authorId: string, gossipId: string): Promise<void>;
-  unlikeGossip(authorId: string, gossipId: string): Promise<void>;
+  likeGossip(authorId: string, gossipId: string): Promise<string[] | null>;
+  unlikeGossip(authorId: string, gossipId: string): Promise<string[] | null>;
 }
 
 const GossipSchema: Schema = new Schema(
@@ -69,9 +69,10 @@ GossipSchema.statics.likeGossip = async function (
   await mongoose
     .model("User")
     .findByIdAndUpdate(authorId, { $push: { likedGossips: gossipId } });
-  await mongoose
+  const res = await mongoose
     .model("Gossip")
-    .findByIdAndUpdate(gossipId, { $push: { likes: authorId } });
+    .findByIdAndUpdate(gossipId, { $push: { likes: authorId } }, { new: true });
+  return res?.likes || null;
 };
 
 GossipSchema.statics.unlikeGossip = async function (
@@ -81,9 +82,10 @@ GossipSchema.statics.unlikeGossip = async function (
   await mongoose
     .model("User")
     .findByIdAndUpdate(authorId, { $pull: { likedGossips: gossipId } });
-  await mongoose
+  const res = await mongoose
     .model("Gossip")
-    .findByIdAndUpdate(gossipId, { $pull: { likes: authorId } });
+    .findByIdAndUpdate(gossipId, { $pull: { likes: authorId } }, { new: true });
+  return res?.likes || null;
 };
 
 export default mongoose.model<IGossipModel, IGossipModelStatic>(

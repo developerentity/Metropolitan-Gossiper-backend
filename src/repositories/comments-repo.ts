@@ -13,13 +13,18 @@ export const commentsRepo = {
   async findCommentById(commentId: string): Promise<ICommentModel | null> {
     return await Comment.findById(commentId);
   },
-  async likeComment(author: string, commentId: string): Promise<void> {
-    await Comment.likeComment(author, commentId);
+  async likeComment(
+    author: string,
+    commentId: string
+  ): Promise<string[] | null> {
+    return await Comment.likeComment(author, commentId);
   },
-  async unlikeComment(author: string, commentId: string): Promise<void> {
-    await Comment.unlikeComment(author, commentId);
+  async unlikeComment(
+    author: string,
+    commentId: string
+  ): Promise<string[] | null> {
+    return await Comment.unlikeComment(author, commentId);
   },
-
   async deleteAndDissociateFromUserAndGossip(
     commentId: string
   ): Promise<ICommentModel | null> {
