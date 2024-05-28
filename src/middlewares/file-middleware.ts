@@ -6,7 +6,7 @@ const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
 function fileMiddleware(req: Request, res: Response, next: NextFunction) {
-  upload.single("image")(req, res, (err) => {
+  upload.single("file")(req, res, (err) => {
     if (err instanceof multer.MulterError) {
       return res
         .status(HTTP_STATUSES.BAD_REQUEST_400)

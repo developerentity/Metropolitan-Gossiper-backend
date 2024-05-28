@@ -104,8 +104,7 @@ const updateGossip = async (
       return res
         .status(HTTP_STATUSES.FORBIDDEN_403)
         .json({ error: "Forbidden" });
-
-    const updatedGossip = await gossipsService.updateGossip(gossipId, {
+    const updatedGossip = await gossipsService.updateGossip(gossip, {
       content,
       file,
     });
@@ -121,63 +120,62 @@ const updateGossip = async (
   }
 };
 
-const likeGossip = async (req: Request, res: Response) => {
-  const author = req.user._id;
-  const { gossipId } = req.params;
+const getItemLikes = async (req: Request, res: Response) => {
+  const { itemId } = req.params;
 
   try {
-    const gossip = await gossipsRepo.findGossipById(gossipId);
-
-    if (!gossip) {
+    const likes = await gossipsService.getItemLikes(itemId);
+    if (!likes)
       return res
         .status(HTTP_STATUSES.NOT_FOUND_404)
-        .json({ message: "Gossip not found" });
-    }
+        .json({ message: "Something went wrong" });
 
-    if (gossip.likes.includes(author)) {
+        Logging.warn(likes)
+    return res.status(HTTP_STATUSES.OK_200).send(likes);
+  } catch (error) {
+    Logging.error(error);
+    return res
+      .status(HTTP_STATUSES.INTERNAL_SERVER_ERROR_500)
+      .json({ message: "An error occurred while trying to get item's likes" });
+  }
+};
+
+const likeItem = async (req: Request, res: Response) => {
+  const author = req.user._id;
+  const { itemId } = req.params;
+
+  try {
+    const result = await gossipsService.likeItem(author, itemId);
+    if (!result)
       return res
-        .status(HTTP_STATUSES.BAD_REQUEST_400)
-        .json({ message: "This gossip have already been liked" });
-    }
-
-    await gossipsService.likeGossip(author, gossipId);
+        .status(HTTP_STATUSES.NOT_FOUND_404)
+        .json({ message: "Something went wrong" });
 
     return res.status(HTTP_STATUSES.OK_200).json({ message: "Liked" });
   } catch (error) {
     Logging.error(error);
     return res
       .status(HTTP_STATUSES.INTERNAL_SERVER_ERROR_500)
-      .json({ message: "An error occurred while trying to like the gossip." });
+      .json({ message: "An error occurred while trying to like the item." });
   }
 };
 
-const unlikeGossip = async (req: Request, res: Response) => {
+const unlikeItem = async (req: Request, res: Response) => {
   const author = req.user._id;
-  const { gossipId } = req.params;
+  const { itemId } = req.params;
 
   try {
-    const gossip = await gossipsRepo.findGossipById(gossipId);
-    if (!gossip) {
+    const result = await gossipsService.unlikeItem(author, itemId);
+    if (!result)
       return res
         .status(HTTP_STATUSES.NOT_FOUND_404)
-        .json({ message: "Gossip not found" });
-    }
+        .json({ message: "Something went wrong" });
 
-    if (!gossip.likes.includes(author)) {
-      return res
-        .status(HTTP_STATUSES.BAD_REQUEST_400)
-        .json({ message: "This gossip haven't liked yet" });
-    }
-
-    await gossipsService.unlikeGossip(author, gossipId);
-
-    return res
-      .status(HTTP_STATUSES.OK_200)
-      .json({ message: "This gossip is no more liked" });
+    return res.status(HTTP_STATUSES.OK_200).json({ message: "unliked" });
   } catch (error) {
     Logging.error(error);
     return res.status(HTTP_STATUSES.INTERNAL_SERVER_ERROR_500).json({
-      message: "An error occurred while trying to unlike the gossip.",
+      message: "An error occurred while trying to unlike the item.",
     });
   }
 };
@@ -218,7 +216,8 @@ export default {
   readGossip,
   readAll,
   updateGossip,
-  likeGossip,
-  unlikeGossip,
+  likeItem,
+  getItemLikes,
+  unlikeItem,
   deleteGossip,
 };

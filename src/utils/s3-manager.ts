@@ -15,7 +15,7 @@ const generateFileName = (bytes = 32) =>
 
 export const s3Manager = {
   async create(file: {
-    filename: string;
+    size: number;
     buffer: Buffer;
     mimetype: string;
   }): Promise<string | null> {

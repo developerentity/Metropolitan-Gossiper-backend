@@ -28,6 +28,7 @@ export const commentsQueryRepo = {
     const totalPages = Math.ceil(totalComments / limit);
 
     const comments = await Comment.find({ gossip: gossipId })
+      .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
       .limit(limit);
 

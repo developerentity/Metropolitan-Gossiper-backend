@@ -4,7 +4,7 @@ import mongoose from "mongoose";
 import { HTTP_STATUSES } from "../http-statuses";
 import Logging from "../library/Logging";
 
-type IdType = "userId" | "gossipId" | "commentId";
+type IdType = "userId" | "gossipId" | "commentId" | "itemId";
 
 const checkIdValidity = (idType: IdType): RequestHandler => {
   return (req, res, next) => {
@@ -31,3 +31,4 @@ const checkIdValidity = (idType: IdType): RequestHandler => {
 export const checkUserIdValidity = checkIdValidity("userId");
 export const checkGossipIdValidity = checkIdValidity("gossipId");
 export const checkCommentIdValidity = checkIdValidity("commentId");
+export const checkItemIdValidity = checkIdValidity("itemId");

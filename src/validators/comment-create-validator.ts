@@ -8,5 +8,4 @@ export const commentCreateValidator = [
   ).isLength({
     max: 300,
   }),
-  body("parent", "Wrong 'parentId' format").optional().isMongoId(),
 ];

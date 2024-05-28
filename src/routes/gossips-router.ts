@@ -6,6 +6,7 @@ import { basicTokenValidator } from "../middlewares/basic-token-validator";
 import {
   checkCommentIdValidity,
   checkGossipIdValidity,
+  checkItemIdValidity,
 } from "../middlewares/check-id-validity";
 import { gossipCreateValidator } from "../validators/gossip-create-validator";
 import { validate } from "../middlewares/validate";
@@ -53,6 +54,23 @@ router.delete(
   checkCommentIdValidity,
   basicTokenValidator,
   commentsController.deleteComment
+);
+router.get(
+  "/get/:itemId/likes",
+  checkItemIdValidity,
+  gossipsController.getItemLikes
+);
+router.post(
+  "/:itemId/like",
+  checkItemIdValidity,
+  basicTokenValidator,
+  gossipsController.likeItem
+);
+router.delete(
+  "/:itemId/unlike",
+  checkItemIdValidity,
+  basicTokenValidator,
+  gossipsController.unlikeItem
 );
 
 export = router;
