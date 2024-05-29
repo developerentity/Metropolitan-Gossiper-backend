@@ -12,7 +12,6 @@ import { ErrorResponse, ItemsListViewModel } from "../types/response-types";
 import { usersService } from "../domain/users-service";
 import { CreateUserModel } from "../models/users/create-user-model";
 import { URIParamsUserModel } from "../models/users/uri-params-user-model";
-import { usersQueryRepo } from "../repositories/users-query-repo";
 import { usersRepo } from "../repositories/users-repo";
 import { UpdateUserModel } from "../models/users/update-user-model";
 import Logging from "../library/Logging";
@@ -49,7 +48,7 @@ const createUser = async (
       });
     }
 
-    const registeredUser = await usersQueryRepo.findUserById(user._id);
+    const registeredUser = await usersService.readUserById(user._id);
 
     const { accessToken, refreshToken } = await jwtService.generateTokens(
       user.id
@@ -73,19 +72,19 @@ const createUser = async (
 
 const readUser = async (
   req: RequestWithParams<URIParamsUserModel>,
-  res: Response
+  res: Response<UserViewModel | ErrorResponse>
 ) => {
   const { userId } = req.params;
 
   try {
-    const user = await usersQueryRepo.findUserById(userId);
+    const user = await usersService.readUserById(userId);
     if (!user) {
       return res
         .status(HTTP_STATUSES.NOT_FOUND_404)
         .json({ message: "User not found" });
     }
 
-    return res.status(HTTP_STATUSES.OK_200).json({ user });
+    return res.status(HTTP_STATUSES.OK_200).json(user);
   } catch (error) {
     Logging.error(error);
     return res
@@ -100,7 +99,7 @@ const readAll = async (
 ) => {
   try {
     const foundUsers: ItemsListViewModel<UserViewModel> =
-      await usersQueryRepo.getAllUsers({
+      await usersService.readUsers({
         limit: +req.query.pageSize,
         page: +req.query.pageNumber,
         sortField: req.query.sortField,

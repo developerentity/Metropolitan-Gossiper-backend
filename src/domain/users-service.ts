@@ -7,6 +7,10 @@ import { emailManager } from "../utils/emailManager";
 import { tokensRepo } from "../repositories/tokens-repo";
 import { IToken } from "../models/token-model";
 import { randomUUID } from "crypto";
+import { UserViewModel } from "../models/users/user-view-model";
+import { s3Manager } from "../utils/s3-manager";
+import { usersQueryRepo } from "../repositories/users-query-repo";
+import { ItemsListViewModel } from "../types/response-types";
 
 /**
  *  This is a BLL (Business Logic Layer).
@@ -16,7 +20,7 @@ export const usersService = {
   async createUser(
     firstName: string,
     lastName: string,
-    avatar: string,
+    avatarName: string,
     email: string,
     password: string,
     about?: string
@@ -27,7 +31,7 @@ export const usersService = {
     const newUser: IUser = {
       firstName,
       lastName,
-      avatar,
+      avatarName,
       email,
       password: hashedPassword,
       about: about || "",
@@ -112,5 +116,43 @@ export const usersService = {
     await usersRepo.updateVerification(userId);
     await tokensRepo.delete(tokenData._id);
     return true;
+  },
+  async readUserById(userId: string): Promise<UserViewModel | null> {
+    const user = await usersQueryRepo.findUserById(userId);
+    return user ? await this._transformToViewModel(user) : null;
+  },
+  async readUsers(queryParams: {
+    limit: number;
+    page: number;
+    sortField: string;
+    sortOrder: string;
+    searchQuery: string;
+  }): Promise<ItemsListViewModel<UserViewModel>> {
+    const usersData = await usersQueryRepo.getAllUsers(queryParams);
+    return {
+      totalItems: usersData.totalItems,
+      totalPages: usersData.totalPages,
+      currentPage: usersData.currentPage,
+      items: await Promise.all(
+        usersData.items.map((gossip: any) => this._transformToViewModel(gossip))
+      ),
+    };
+  },
+  async _transformToViewModel(user: IUserModel): Promise<UserViewModel> {
+    const avatarUrl = user.avatarName
+      ? await s3Manager.read(user.avatarName)
+      : undefined;
+
+    return {
+      id: user._id.toHexString(),
+      role: user.role,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      avatarUrl,
+      email: user.email,
+      about: user.about,
+      gossips: user.gossips,
+      createdAt: user.createdAt,
+    };
   },
 };
