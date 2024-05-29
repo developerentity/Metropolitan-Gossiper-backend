@@ -3,7 +3,7 @@ export type UserViewModel = {
   role: string;
   firstName: string;
   lastName: string;
-  avatarUrl: string | undefined | null; // delete null in future
+  avatarUrl: string | undefined;
   email: string;
   about: string;
   gossips: string[];

@@ -93,7 +93,7 @@ export const gossipsService = {
   async _transformToViewModel(gossip: IGossipModel): Promise<GossipViewModel> {
     const imageUrl = gossip.imageName
       ? await s3Manager.read(gossip.imageName)
-      : null;
+      : undefined;
 
     return {
       id: gossip._id.toHexString(),

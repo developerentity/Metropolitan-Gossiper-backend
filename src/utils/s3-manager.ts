@@ -2,6 +2,7 @@ import {
   PutObjectCommand,
   GetObjectCommand,
   DeleteObjectCommand,
+  DeleteObjectCommandOutput,
 } from "@aws-sdk/client-s3";
 import { BUCKET_NAME } from "../config";
 import { s3 } from "../application/s3-adapter";
@@ -18,7 +19,7 @@ export const s3Manager = {
     size: number;
     buffer: Buffer;
     mimetype: string;
-  }): Promise<string | null> {
+  }): Promise<string | undefined> {
     try {
       const imageName = generateFileName();
 
@@ -41,10 +42,10 @@ export const s3Manager = {
       return imageName;
     } catch (error) {
       Logging.error("S3 Manager error ======== " + error);
-      return null;
+      return undefined;
     }
   },
-  async read(name: string) {
+  async read(name: string): Promise<string | undefined> {
     try {
       const getObjectParams = {
         Bucket: BUCKET_NAME!,
@@ -56,10 +57,10 @@ export const s3Manager = {
       return url;
     } catch (error) {
       Logging.error("S3 Manager error ======== " + error);
-      return null;
+      return undefined;
     }
   },
-  async delete(name: string) {
+  async delete(name: string): Promise<DeleteObjectCommandOutput | undefined> {
     try {
       const params = {
         Bucket: BUCKET_NAME!,
@@ -71,7 +72,7 @@ export const s3Manager = {
       return res;
     } catch (error) {
       Logging.error("S3 Manager error ======== " + error);
-      return null;
+      return undefined;
     }
   },
 };
