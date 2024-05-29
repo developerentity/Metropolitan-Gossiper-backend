@@ -5,4 +5,5 @@ export type CommentViewModel = {
   gossip: string;
   parent: string | null;
   likes: string[];
+  createdAt: Date;
 };

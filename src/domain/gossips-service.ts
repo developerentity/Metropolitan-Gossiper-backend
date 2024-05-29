@@ -86,7 +86,7 @@ export const gossipsService = {
       totalPages: gossips.totalPages,
       currentPage: gossips.currentPage,
       items: await Promise.all(
-        gossips.items.map((gossip: any) => this._transformToViewModel(gossip))
+        gossips.items.map((gossip) => this._transformToViewModel(gossip))
       ),
     };
   },
@@ -101,7 +101,7 @@ export const gossipsService = {
       content: gossip.content,
       comments: gossip.comments,
       imageUrl,
-      author: gossip.author,
+      author: gossip.author.toString(),
       likes: gossip.likes,
       createdAt: gossip.createdAt,
       updatedAt: gossip.updatedAt,

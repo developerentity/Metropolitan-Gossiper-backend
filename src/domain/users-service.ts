@@ -134,7 +134,7 @@ export const usersService = {
       totalPages: usersData.totalPages,
       currentPage: usersData.currentPage,
       items: await Promise.all(
-        usersData.items.map((gossip: any) => this._transformToViewModel(gossip))
+        usersData.items.map((gossip) => this._transformToViewModel(gossip))
       ),
     };
   },

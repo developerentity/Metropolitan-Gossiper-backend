@@ -8,7 +8,9 @@ export interface IComment {
   likes: string[];
 }
 
-export interface ICommentModel extends IComment, Document {}
+export interface ICommentModel extends IComment, Document {
+  createdAt: Date;
+}
 
 export interface ICommentModelStatic extends Model<ICommentModel> {
   createAndAssociateWithUserAndGossip(

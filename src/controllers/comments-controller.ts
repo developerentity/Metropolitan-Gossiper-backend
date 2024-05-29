@@ -10,7 +10,6 @@ import { ErrorResponse, ItemsListViewModel } from "../types/response-types";
 import { RequestWithParamsAndQuery } from "../types/request-types";
 import { QueryCommentModel } from "../models/comments/query-comment-model";
 import { URIParamsGossipModel } from "../models/gossips/uri-params-gossip-model";
-import { commentsQueryRepo } from "../repositories/comments-query-repo";
 
 const createComment = async (req: Request, res: Response) => {
   const { content, parent } = req.body;
@@ -51,12 +50,10 @@ const readCommentsByGossip = async (
 ) => {
   try {
     const foundComments: ItemsListViewModel<CommentViewModel> | null =
-      await commentsQueryRepo.findCommentsByGossip(
-        req.params.gossipId,
-        +req.query.pageNumber,
-        +req.query.pageSize
-      );
-
+      await commentsService.readComments(req.params.gossipId, {
+        page: +req.query.pageNumber,
+        limit: +req.query.pageSize,
+      });
     return res.status(HTTP_STATUSES.OK_200).json(foundComments);
   } catch (error) {
     Logging.error(error);
