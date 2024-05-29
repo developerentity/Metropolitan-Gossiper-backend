@@ -3,7 +3,6 @@ import { Request, Response } from "express";
 import { HTTP_STATUSES } from "../http-statuses";
 import Logging from "../library/Logging";
 import { gossipsService } from "../domain/gossips-service";
-import { gossipsQueryRepo } from "../repositories/gossips-query-repo";
 import { gossipsRepo } from "../repositories/gossips-repo";
 import {
   RequestWithParamsAndBody,
@@ -41,7 +40,7 @@ const readGossip = async (req: Request, res: Response) => {
   const { gossipId } = req.params;
 
   try {
-    const gossip = await gossipsQueryRepo.findGossipById(gossipId);
+    const gossip = await gossipsService.readGossipById(gossipId);
 
     if (!gossip) {
       return res
@@ -64,7 +63,7 @@ const readAll = async (
 ) => {
   try {
     const foundGossips: ItemsListViewModel<GossipViewModel> =
-      await gossipsQueryRepo.findGossips({
+      await gossipsService.readGossips({
         limit: +req.query.pageSize,
         page: +req.query.pageNumber,
         sortField: req.query.sortField,

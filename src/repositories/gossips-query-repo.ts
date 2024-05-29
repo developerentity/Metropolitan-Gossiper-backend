@@ -2,34 +2,14 @@ import { Types } from "mongoose";
 import Gossip, { IGossipModel } from "../models/gossip-model";
 import { GossipsQueryFilter } from "../models/gossips/gossip-query-filter";
 import { ItemsListViewModel } from "../types/response-types";
-import { GossipViewModel } from "../models/gossips/gossip-view-model";
-import { s3Manager } from "../utils/s3-manager";
 
 /**
  * This is the DAL (Data Access Layer).
  * Which is responsible for Read only operations.
  */
-
-const transformToViewModel = async (
-  gossip: IGossipModel
-): Promise<GossipViewModel> => {
-  const imageName = gossip.imageName;
-  const imageUrl = imageName && (await s3Manager.read(imageName));
-  return {
-    id: gossip._id.toHexString(),
-    title: gossip.title,
-    content: gossip.content,
-    comments: gossip.comments,
-    imageUrl: imageUrl,
-    author: gossip.author,
-    likes: gossip.likes,
-  };
-};
-
 export const gossipsQueryRepo = {
-  async findGossipById(gossipId: string): Promise<GossipViewModel | null> {
-    const res = await Gossip.findById(gossipId).populate("comments");
-    return res ? transformToViewModel(res) : null;
+  async findGossipById(gossipId: string): Promise<IGossipModel | null> {
+    return await Gossip.findById(gossipId);
   },
   async findGossips(queryParams: {
     authorId?: string;
@@ -38,7 +18,7 @@ export const gossipsQueryRepo = {
     sortField?: string;
     sortOrder?: string;
     titleFilter?: string;
-  }): Promise<ItemsListViewModel<GossipViewModel>> {
+  }): Promise<ItemsListViewModel<IGossipModel>> {
     const limit = queryParams.limit || 10;
     const page = queryParams.page || 1;
     const sortField = queryParams.sortField || "createdAt";
@@ -61,17 +41,12 @@ export const gossipsQueryRepo = {
       .sort({ [sortField]: sortOrder })
       .skip((page - 1) * limit)
       .limit(limit)
-      .populate("comments");
-
-    const transformedGossips = await Promise.all(
-      gossips.map((g) => transformToViewModel(g))
-    );
 
     return {
       totalItems: totalGossips,
       totalPages: totalPages,
       currentPage: page,
-      items: transformedGossips,
+      items: gossips,
     };
   },
 };

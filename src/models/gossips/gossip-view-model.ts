@@ -6,4 +6,6 @@ export type GossipViewModel = {
   imageUrl: string | null | undefined;
   author: string;
   likes: string[];
+  createdAt: Date;
+  updatedAt: Date;
 };

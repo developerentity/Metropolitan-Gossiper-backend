@@ -9,7 +9,10 @@ export interface IGossip {
   likes: string[];
 }
 
-export interface IGossipModel extends IGossip, Document {}
+export interface IGossipModel extends IGossip, Document {
+  createdAt: Date;
+  updatedAt: Date;
+}
 
 export interface IGossipModelStatic extends Model<IGossipModel> {
   createAndAssociateWithUser(gossip: IGossip): Promise<IGossipModel>;
