@@ -1,5 +1,4 @@
 import User, { IUserModel } from "../models/user-model";
-import { UserViewModel } from "../models/users/user-view-model";
 import { ItemsListViewModel } from "../types/response-types";
 
 /**
@@ -13,7 +12,7 @@ export const usersQueryRepo = {
     sortField: string;
     sortOrder: string;
     searchQuery: string;
-  }): Promise<ItemsListViewModel<UserViewModel>> {
+  }): Promise<ItemsListViewModel<IUserModel>> {
     const limit = queryParams.limit || 10;
     const page = queryParams.page || 1;
     const sortField = queryParams.sortField || "createdAt";
@@ -38,31 +37,14 @@ export const usersQueryRepo = {
       .skip((page - 1) * limit)
       .limit(limit);
 
-    const transformedUsers = users.map((u) => transformToViewModel(u));
-
     return {
       totalItems: totalUsers,
       totalPages: totalPages,
       currentPage: page,
-      items: transformedUsers,
+      items: users,
     };
   },
-  async findUserById(id: string): Promise<UserViewModel | null> {
-    const user = await User.findById(id);
-    return user ? transformToViewModel(user) : null;
+  async findUserById(id: string): Promise<IUserModel | null> {
+    return await User.findById(id);
   },
-};
-
-const transformToViewModel = (user: IUserModel): UserViewModel => {
-  return {
-    id: user._id.toHexString(),
-    role: user.role,
-    firstName: user.firstName,
-    lastName: user.lastName,
-    avatar: user.avatar,
-    email: user.email,
-    about: user.about,
-    gossips: user.gossips,
-    createdAt: user.createdAt,
-  };
 };

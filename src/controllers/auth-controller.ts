@@ -5,13 +5,12 @@ import { usersService } from "../domain/users-service";
 import { jwtService } from "../application/jwt-service";
 import { HTTP_STATUSES } from "../http-statuses";
 import { EXPIRES_TOKEN } from "../config";
-import { usersQueryRepo } from "../repositories/users-query-repo";
 
 const getAuthData = async (req: Request, res: Response) => {
   const userId = req.user._id;
 
   try {
-    const userData = await usersQueryRepo.findUserById(userId);
+    const userData = await usersService.readUserById(userId);
 
     if (!userData) {
       return res
@@ -19,7 +18,6 @@ const getAuthData = async (req: Request, res: Response) => {
         .json({ error: "User not found" });
     }
 
-    Logging.warn(userData);
     return res.status(HTTP_STATUSES.OK_200).json(userData);
   } catch (error) {
     Logging.error(error);
@@ -37,7 +35,7 @@ const signin = async (req: Request, res: Response) => {
       email,
       password
     );
-    const user = await usersQueryRepo.findUserById(userIntrinsicData?._id);
+    const user = await usersService.readUserById(userIntrinsicData?._id);
 
     if (!userIntrinsicData) {
       return res
@@ -81,7 +79,7 @@ const refreshToken = async (req: Request, res: Response) => {
 
   try {
     const userId = await jwtService.verifyRefreshJWT(previousRefreshToken);
-    const user = await usersQueryRepo.findUserById(userId);
+    const user = await usersService.readUserById(userId);
     const { accessToken, refreshToken } = await jwtService.generateTokens(
       userId
     );

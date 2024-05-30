@@ -1,9 +1,11 @@
-import mongoose, { Document, Schema } from "mongoose";
+import mongoose, { CallbackError, Document, Schema } from "mongoose";
+import Gossip from "./gossip-model";
+import Comment from "./comment-model";
 
 export interface IUser {
   firstName: string;
   lastName: string;
-  avatar: string;
+  avatarName: string;
   email: string;
   password: string;
   about: string;
@@ -30,7 +32,7 @@ const UserSchema: Schema = new Schema(
       type: String,
       required: true,
     },
-    avatar: {
+    avatarName: {
       type: String,
     },
     email: {
@@ -60,5 +62,18 @@ const UserSchema: Schema = new Schema(
   },
   { timestamps: true }
 );
+
+UserSchema.pre("deleteOne", async function (next) {
+  try {
+    const userId = this.getQuery()._id;
+
+    await Gossip.cleanUpUserAssociations(userId);
+    await Comment.cleanUpUserAssociations(userId);
+
+    next();
+  } catch (err) {
+    next(err as CallbackError);
+  }
+});
 
 export default mongoose.model<IUserModel>("User", UserSchema);

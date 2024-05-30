@@ -1,4 +1,6 @@
 import mongoose, { Document, Schema, Model } from "mongoose";
+import { IUser } from "./user-model";
+import { IComment } from "./comment-model";
 
 export interface IGossip {
   title: string;
@@ -9,13 +11,17 @@ export interface IGossip {
   likes: string[];
 }
 
-export interface IGossipModel extends IGossip, Document {}
+export interface IGossipModel extends IGossip, Document {
+  createdAt: Date;
+  updatedAt: Date;
+}
 
 export interface IGossipModelStatic extends Model<IGossipModel> {
   createAndAssociateWithUser(gossip: IGossip): Promise<IGossipModel>;
   deleteAndDissociateFromUser(gossipId: string): Promise<IGossipModel | null>;
   likeGossip(authorId: string, gossipId: string): Promise<string[] | null>;
   unlikeGossip(authorId: string, gossipId: string): Promise<string[] | null>;
+  cleanUpUserAssociations(userId: string): Promise<void>;
 }
 
 const GossipSchema: Schema = new Schema(
@@ -51,15 +57,73 @@ GossipSchema.statics.createAndAssociateWithUser = async function (
 GossipSchema.statics.deleteAndDissociateFromUser = async function (
   gossipId: string
 ) {
-  const gossip = await this.findByIdAndDelete(gossipId);
-  await mongoose
-    .model("User")
-    .findByIdAndUpdate(
-      gossip.author,
-      { $pull: { gossips: gossipId } },
-      { new: true }
-    );
-  return gossip;
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+    //delete a gossip
+    const gossip = await this.findByIdAndDelete(gossipId).session(session);
+
+    if (!gossip) {
+      await session.abortTransaction();
+      session.endSession();
+      return null;
+    }
+
+    // delete from owner's "gossips" array
+    await mongoose
+      .model<IUser>("User")
+      .findByIdAndUpdate(gossip.author, { $pull: { gossips: gossipId } })
+      .session(session);
+
+    // clean up all likes in users' "likedGossips" array
+    await mongoose
+      .model<IUser>("User")
+      .updateMany(
+        { likedGossips: { $in: [gossipId] } },
+        { $pull: { likedGossips: gossipId } }
+      )
+      .session(session);
+
+    // get all comments associated with the gossip
+    const comments = await mongoose
+      .model<IComment>("Comment")
+      .find({ gossip: gossipId })
+      .session(session);
+
+    // remove all likes for these comments from users' "likedComments" array
+    const commentIds = comments.map((comment) => comment._id);
+    await mongoose
+      .model<IUser>("User")
+      .updateMany(
+        { likedComments: { $in: commentIds } },
+        { $pull: { likedComments: { $in: commentIds } } }
+      )
+      .session(session);
+
+    // remove comment IDs from users' "comments" array
+    await mongoose
+      .model<IUser>("User")
+      .updateMany(
+        { comments: { $in: commentIds } },
+        { $pull: { comments: { $in: commentIds } } }
+      )
+      .session(session);
+
+    // clean up all comments of a gossip
+    await mongoose
+      .model<IComment>("Comment")
+      .deleteMany({ gossip: gossipId })
+      .session(session);
+
+    await session.commitTransaction();
+    session.endSession();
+    return gossip;
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+    throw error;
+  }
 };
 
 GossipSchema.statics.likeGossip = async function (
@@ -86,6 +150,16 @@ GossipSchema.statics.unlikeGossip = async function (
     .model("Gossip")
     .findByIdAndUpdate(gossipId, { $pull: { likes: authorId } }, { new: true });
   return res?.likes || null;
+};
+
+GossipSchema.statics.cleanUpUserAssociations = async function (userId: string) {
+  // remove user likes from all gossip
+  await this.updateMany(
+    { likes: { $in: [userId] } },
+    { $pull: { likes: userId } }
+  );
+  // delete all user generated gossips
+  await this.deleteMany({ author: userId });
 };
 
 export default mongoose.model<IGossipModel, IGossipModelStatic>(
