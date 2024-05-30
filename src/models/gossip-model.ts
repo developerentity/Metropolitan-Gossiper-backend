@@ -21,6 +21,7 @@ export interface IGossipModelStatic extends Model<IGossipModel> {
   deleteAndDissociateFromUser(gossipId: string): Promise<IGossipModel | null>;
   likeGossip(authorId: string, gossipId: string): Promise<string[] | null>;
   unlikeGossip(authorId: string, gossipId: string): Promise<string[] | null>;
+  cleanUpUserAssociations(userId: string): Promise<void>;
 }
 
 const GossipSchema: Schema = new Schema(
@@ -149,6 +150,16 @@ GossipSchema.statics.unlikeGossip = async function (
     .model("Gossip")
     .findByIdAndUpdate(gossipId, { $pull: { likes: authorId } }, { new: true });
   return res?.likes || null;
+};
+
+GossipSchema.statics.cleanUpUserAssociations = async function (userId: string) {
+  // remove user likes from all gossip
+  await this.updateMany(
+    { likes: { $in: [userId] } },
+    { $pull: { likes: userId } }
+  );
+  // delete all user generated gossips
+  await this.deleteMany({ author: userId });
 };
 
 export default mongoose.model<IGossipModel, IGossipModelStatic>(

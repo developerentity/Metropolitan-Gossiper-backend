@@ -21,6 +21,7 @@ export interface ICommentModelStatic extends Model<ICommentModel> {
   ): Promise<ICommentModel | null>;
   likeComment(authorId: string, commentId: string): Promise<string[] | null>;
   unlikeComment(authorId: string, commentId: string): Promise<string[] | null>;
+  cleanUpUserAssociations(userId: string): Promise<void>;
 }
 
 const CommentSchema: Schema = new Schema(
@@ -104,6 +105,18 @@ CommentSchema.statics.unlikeComment = async function (
       { new: true }
     );
   return res?.likes || null;
+};
+
+CommentSchema.statics.cleanUpUserAssociations = async function (
+  userId: string
+) {
+  // remove user likes from all comments
+  await this.updateMany(
+    { likes: { $in: [userId] } },
+    { $pull: { likes: userId } }
+  );
+  // delete all user created comments
+  await this.deleteMany({ author: userId });
 };
 
 export default mongoose.model<ICommentModel, ICommentModelStatic>(

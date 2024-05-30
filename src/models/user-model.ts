@@ -1,6 +1,6 @@
 import mongoose, { CallbackError, Document, Schema } from "mongoose";
-import { IGossip } from "./gossip-model";
-import { IComment } from "./comment-model";
+import Gossip from "./gossip-model";
+import Comment from "./comment-model";
 
 export interface IUser {
   firstName: string;
@@ -67,15 +67,8 @@ UserSchema.pre("deleteOne", async function (next) {
   try {
     const userId = this.getQuery()._id;
 
-    await mongoose
-      .model<IGossip>("Gossip")
-      .updateMany({ likes: { $in: [userId] } }, { $pull: { likes: userId } });
-    await mongoose
-      .model<IComment>("Comment")
-      .updateMany({ likes: { $in: [userId] } }, { $pull: { likes: userId } });
-
-    await mongoose.model<IGossip>("Gossip").deleteMany({ author: userId });
-    await mongoose.model<IComment>("Comment").deleteMany({ author: userId });
+    await Gossip.cleanUpUserAssociations(userId);
+    await Comment.cleanUpUserAssociations(userId);
 
     next();
   } catch (err) {
