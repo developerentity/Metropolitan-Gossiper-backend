@@ -1,4 +1,6 @@
-import mongoose, { Document, Schema } from "mongoose";
+import mongoose, { CallbackError, Document, Schema } from "mongoose";
+import { IGossip } from "./gossip-model";
+import { IComment } from "./comment-model";
 
 export interface IUser {
   firstName: string;
@@ -60,5 +62,25 @@ const UserSchema: Schema = new Schema(
   },
   { timestamps: true }
 );
+
+UserSchema.pre("deleteOne", async function (next) {
+  try {
+    const userId = this.getQuery()._id;
+
+    await mongoose
+      .model<IGossip>("Gossip")
+      .updateMany({ likes: { $in: [userId] } }, { $pull: { likes: userId } });
+    await mongoose
+      .model<IComment>("Comment")
+      .updateMany({ likes: { $in: [userId] } }, { $pull: { likes: userId } });
+
+    await mongoose.model<IGossip>("Gossip").deleteMany({ author: userId });
+    await mongoose.model<IComment>("Comment").deleteMany({ author: userId });
+
+    next();
+  } catch (err) {
+    next(err as CallbackError);
+  }
+});
 
 export default mongoose.model<IUserModel>("User", UserSchema);

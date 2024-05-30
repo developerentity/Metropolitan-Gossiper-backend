@@ -22,7 +22,9 @@ export const usersRepo = {
     return await User.findOne({ email: email });
   },
   async deleteUser(userId: string): Promise<boolean> {
-    const result = await User.findByIdAndDelete(userId);
+    // should remain 'deleteOne' method
+    // fot the 'pre' middleware im the User model
+    const result = await User.deleteOne({ _id: userId });
     return !!result;
   },
   async checkIfEmailIsAlreadyOccupied(email: string): Promise<boolean> {
