@@ -22,8 +22,10 @@ export const gossipsRepo = {
   },
   async deleteAndDissociateFromUser(
     gossipId: string
-  ): Promise<IGossipModel | null> {
-    return await Gossip.deleteAndDissociateFromUser(gossipId);
+  ): Promise<boolean> {
+    const res = await Gossip.deleteOne({ _id: gossipId });
+
+    return res.deletedCount === 1;
   },
   async likeGossip(author: string, gossipId: string): Promise<string[] | null> {
     return await Gossip.likeGossip(author, gossipId);
