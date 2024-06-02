@@ -10,6 +10,7 @@ import authRouter from "./routes/auth-router";
 import gossipsRouter from "./routes/gossips-router";
 import pingRouter from "./routes/ping-router";
 import likesRouter from "./routes/likes-router";
+import { testRouter } from "./routes/test-router";
 
 export const app = express();
 
@@ -31,6 +32,7 @@ app.use("/users", usersRouter);
 app.use("/account", authRouter);
 app.use("/gossips", gossipsRouter);
 app.use("/likes", likesRouter);
+app.use("/__test__/data", testRouter);
 
 app.use((req, res, next) => {
   res.header("Access-Control-Allow-Origin", "*");
