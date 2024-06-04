@@ -5,10 +5,16 @@ import { runDB } from "./repositories/db";
 const port = process.env.PORT;
 
 const startApp = async () => {
-  await runDB();
-  app.listen(port, () => {
-    Logging.info(`Server listening on port ${port}`);
-  });
+  try {
+    await runDB();
+    app.listen(port, () => {
+      Logging.info(`Server listening on port ${port}`);
+    });
+  } catch (error) {
+    if (error instanceof Error) {
+      console.log(`Error occured: (${error.message})`);
+    }
+  }
 };
 
 startApp();

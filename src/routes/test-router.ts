@@ -2,7 +2,7 @@ import express from "express";
 import { HTTP_STATUSES } from "../http-statuses";
 import { testsRepo } from "../repositories/tests-repo";
 
-export const testRouter = express.Router({});
+const testRouter = express.Router({});
 
 testRouter.delete("/users", (_, res) => {
   testsRepo.clearUsers();
@@ -20,3 +20,5 @@ testRouter.delete("/comments", (_, res) => {
   testsRepo.clearComments();
   res.sendStatus(HTTP_STATUSES.NO_CONTENT_204);
 });
+
+export = testRouter;

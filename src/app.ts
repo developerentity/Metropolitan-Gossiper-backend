@@ -1,4 +1,4 @@
-import express from "express";
+import express, { Application } from "express";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 
@@ -10,9 +10,9 @@ import authRouter from "./routes/auth-router";
 import gossipsRouter from "./routes/gossips-router";
 import pingRouter from "./routes/ping-router";
 import likesRouter from "./routes/likes-router";
-import { testRouter } from "./routes/test-router";
+import testRouter from "./routes/test-router";
 
-export const app = express();
+export const app: Application = express();
 
 app.use(express.json());
 app.use(cookieParser());
