@@ -1,9 +1,9 @@
-import { app } from "../src/app";
-import * as db from "./db";
+import { app } from "../../src/app";
+import * as db from "../../src/config/db-tests";
 import supertest from "supertest";
 const request = supertest(app);
 
-describe("Test request with mongoose", () => {
+describe("Test request gossips route", () => {
   beforeAll(async () => {
     await db.connect();
   });
@@ -14,11 +14,10 @@ describe("Test request with mongoose", () => {
     await db.closeDatabase();
   });
 
-  test("GET - /", async () => {
-    const res = await request.get("/users/get").send();
+  test("GET - /gossips/get", async () => {
+    const res = await request.get("/gossips/get").send();
     const body = res.body;
     const message = body.message;
     expect(res.statusCode).toBe(200);
-    // expect(message).toBe("Hello World!");
   });
 });

@@ -1,6 +1,6 @@
 import { app } from "./app";
 import Logging from "./library/Logging";
-import { runDB } from "./repositories/db";
+import { runDB } from "./config/db";
 
 const port = process.env.PORT;
 
