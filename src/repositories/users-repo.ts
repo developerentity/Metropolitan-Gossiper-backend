@@ -21,11 +21,10 @@ export const usersRepo = {
   async findByEmail(email: string): Promise<IUserModel | null> {
     return await User.findOne({ email: email });
   },
-  async deleteUser(userId: string): Promise<boolean> {
+  async deleteUser(userId: string): Promise<IUserModel | null> {
     // should remain 'deleteOne' method
-    // fot the 'pre' middleware im the User model
-    const result = await User.deleteOne({ _id: userId });
-    return !!result;
+    // fot the 'pre' middleware im the User model                 need to fix
+    return await User.findByIdAndDelete(userId);
   },
   async checkIfEmailIsAlreadyOccupied(email: string): Promise<boolean> {
     const existingUser = await User.findOne({ email });
