@@ -137,4 +137,5 @@ UserSchema.pre("deleteOne", async function (next) {
   }
 });
 
-export default mongoose.model<IUserModel, IUserModelStatic>("User", UserSchema);
+const User = mongoose.model<IUserModel, IUserModelStatic>("User", UserSchema);
+export default User;

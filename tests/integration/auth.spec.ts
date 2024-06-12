@@ -1,5 +1,4 @@
 import request from "supertest";
-import supertestAsPromised from "supertest-as-promised";
 
 import * as db from "../../src/config/db-tests";
 import { app } from "../../src/app";
@@ -56,8 +55,7 @@ describe("POST - /account/auth/signup", () => {
       password: "password123",
     };
 
-    const requestWithPromise = supertestAsPromised(app);
-    await requestWithPromise.post("/account/auth/signup").send(existedUser);
+    await request(app).post("/account/auth/signup").send(existedUser);
 
     const newUser = {
       firstName: "Jane",

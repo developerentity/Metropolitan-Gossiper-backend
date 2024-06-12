@@ -202,7 +202,8 @@ GossipSchema.pre("deleteOne", async function (next) {
   }
 });
 
-export default mongoose.model<IGossipModel, IGossipModelStatic>(
+const Gossip = mongoose.model<IGossipModel, IGossipModelStatic>(
   "Gossip",
   GossipSchema
 );
+export default Gossip;
