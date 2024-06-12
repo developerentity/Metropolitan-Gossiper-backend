@@ -1,4 +1,6 @@
+import { DeleteResult } from "mongodb";
 import Gossip, { IGossip, IGossipModel } from "../models/gossip-model";
+import { UpdateWriteOpResult } from "mongoose";
 
 /**
  * This is the DAL (Data Access Layer).
@@ -20,12 +22,16 @@ export const gossipsRepo = {
   async createAndAssociateWithUser(gossip: IGossip): Promise<IGossipModel> {
     return await Gossip.createAndAssociateWithUser(gossip);
   },
-  async deleteAndDissociateFromUser(
-    gossipId: string
-  ): Promise<boolean> {
+  async deleteAndDissociateFromUser(gossipId: string): Promise<boolean> {
     const res = await Gossip.deleteOne({ _id: gossipId });
 
     return res.deletedCount === 1;
+  },
+  async removeAllGossipsByTheUser(userId: string): Promise<DeleteResult> {
+    return await Gossip.deleteMany({ author: userId });
+  },
+  async removeUsersLikes(userId: string): Promise<UpdateWriteOpResult> {
+    return await Gossip.updateMany({}, { $pull: { likes: userId } });
   },
   async likeGossip(author: string, gossipId: string): Promise<string[] | null> {
     return await Gossip.likeGossip(author, gossipId);

@@ -1,3 +1,4 @@
+import { UpdateWriteOpResult } from "mongoose";
 import User, { IUser, IUserModel } from "../models/user-model";
 
 /**
@@ -25,6 +26,22 @@ export const usersRepo = {
     // should remain 'deleteOne' method
     // fot the 'pre' middleware im the User model                 need to fix
     return await User.findByIdAndDelete(userId);
+  },
+  async removeLikedGossipsFromUsersLikesArray(
+    gossipIds: string[]
+  ): Promise<UpdateWriteOpResult> {
+    return await User.updateMany(
+      {},
+      { $pull: { likedGossips: { $in: gossipIds } } }
+    );
+  },
+  async removeLikedCommentsFromUsersLikesArray(
+    commentIds: string[]
+  ): Promise<UpdateWriteOpResult> {
+    return await User.updateMany(
+      {},
+      { $pull: { likedComments: { $in: commentIds } } }
+    );
   },
   async checkIfEmailIsAlreadyOccupied(email: string): Promise<boolean> {
     const existingUser = await User.findOne({ email });

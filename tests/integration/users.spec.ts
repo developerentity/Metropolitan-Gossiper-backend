@@ -6,7 +6,6 @@ import { HTTP_STATUSES } from "../../src/http-statuses";
 import User from "../../src/models/user-model";
 import Gossip from "../../src/models/gossip-model";
 import Comment from "../../src/models/comment-model";
-import Logging from "../../src/library/Logging";
 
 async function createUser(user: {
   firstName: string;
@@ -49,7 +48,6 @@ async function likeItem(
   const response = await request(app)
     .post(`/likes/${itemId}/like?itemType=${itemType}`)
     .set("Authorization", `Bearer ${token}`);
-  Logging.warn(response.body);
   return response.status === HTTP_STATUSES.OK_200;
 }
 

@@ -158,7 +158,7 @@ const deleteUser = async (
   }
 
   try {
-    const result = await usersRepo.deleteUser(userId);
+    const result = await usersService.deleteUserAndRelatedData(userId)
     if (!result) return res.status(HTTP_STATUSES.BAD_REQUEST_400);
     res.status(HTTP_STATUSES.OK_200).json({ message: "Deleted" });
   } catch (error) {

@@ -1,4 +1,6 @@
+import { DeleteResult } from "mongodb";
 import Comment, { IComment, ICommentModel } from "../models/comment-model";
+import { UpdateWriteOpResult } from "mongoose";
 
 /**
  * This is the DAL (Data Access Layer).
@@ -29,5 +31,16 @@ export const commentsRepo = {
     commentId: string
   ): Promise<ICommentModel | null> {
     return await Comment.deleteAndDissociateFromUserAndGossip(commentId);
+  },
+  async removeAllCommentsByTheUser(userId: string): Promise<DeleteResult> {
+    return await Comment.deleteMany({ author: userId });
+  },
+  async removeAllCommentsOnUsersGossips(
+    gossipIds: string[]
+  ): Promise<DeleteResult> {
+    return await Comment.deleteMany({ gossip: { $in: gossipIds } });
+  },
+  async removeUsersLikes(userId: string): Promise<UpdateWriteOpResult> {
+    return await Comment.updateMany({}, { $pull: { likes: userId } });
   },
 };
