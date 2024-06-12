@@ -14,7 +14,7 @@ export const commentsService = {
     gossipId: string,
     content: string,
     parent: string | null
-  ): Promise<ICommentModel | null> {
+  ): Promise<CommentViewModel | null> {
     let authenticParent = parent || null;
 
     if (parent) {
@@ -32,8 +32,9 @@ export const commentsService = {
       parent: authenticParent,
       likes: [],
     };
-
-    return commentsRepo.createAndAssociateWithUserAndGossip(comment);
+    const createdComment =
+      await commentsRepo.createAndAssociateWithUserAndGossip(comment);
+    return await this._transformToViewModel(createdComment);
   },
   async likeComment(
     author: string,
@@ -47,8 +48,12 @@ export const commentsService = {
   ): Promise<string[] | null> {
     return commentsRepo.unlikeComment(author, commentId);
   },
-  async deleteComment(commentId: string): Promise<ICommentModel | null> {
-    return commentsRepo.deleteAndDissociateFromUserAndGossip(commentId);
+  async deleteComment(commentId: string): Promise<CommentViewModel | null> {
+    const deletedComment =
+      await commentsRepo.deleteAndDissociateFromUserAndGossip(commentId);
+    return deletedComment
+      ? await this._transformToViewModel(deletedComment)
+      : null;
   },
   async readComments(
     gossipId: string,

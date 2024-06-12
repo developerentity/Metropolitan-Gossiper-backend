@@ -26,4 +26,7 @@ export const commentsQueryRepo = {
       items: comments,
     };
   },
+  async findAllCommentsByTheUser(userId: string): Promise<{ _id: string }[]> {
+    return await Comment.find({ author: userId }).select("_id");
+  },
 };

@@ -124,17 +124,5 @@ UserSchema.statics.cleanUpCommentAssociations = async function (
   }
 };
 
-UserSchema.pre("deleteOne", async function (next) {
-  try {
-    const userId = this.getQuery()._id;
-
-    await Gossip.cleanUpUserAssociations(userId);
-    await Comment.cleanUpUserAssociations(userId);
-
-    next();
-  } catch (err) {
-    next(err as CallbackError);
-  }
-});
-
-export default mongoose.model<IUserModel, IUserModelStatic>("User", UserSchema);
+const User = mongoose.model<IUserModel, IUserModelStatic>("User", UserSchema);
+export default User;

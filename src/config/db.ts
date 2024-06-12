@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-import { MONGO_URI } from "../config";
+import { MONGO_URI } from ".";
 import Logging from "../library/Logging";
 
 const mongoDB = MONGO_URI || "mongodb://0.0.0.0:27017";

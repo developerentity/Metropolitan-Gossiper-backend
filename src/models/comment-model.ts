@@ -115,7 +115,7 @@ CommentSchema.statics.cleanUpUserAssociations = async function (
 ) {
   const session = await mongoose.startSession();
   session.startTransaction();
-  
+
   try {
     // remove user likes from all comments
     await this.updateMany(
@@ -154,7 +154,8 @@ CommentSchema.pre("deleteOne", async function (next) {
   }
 });
 
-export default mongoose.model<ICommentModel, ICommentModelStatic>(
+const Comment = mongoose.model<ICommentModel, ICommentModelStatic>(
   "Comment",
   CommentSchema
 );
+export default Comment;
