@@ -6,50 +6,14 @@ import { HTTP_STATUSES } from "../../src/http-statuses";
 import User from "../../src/models/user-model";
 import Gossip from "../../src/models/gossip-model";
 import Comment from "../../src/models/comment-model";
-
-async function createUser(user: {
-  firstName: string;
-  lastName: string;
-  email: string;
-  password: string;
-}): Promise<{ id: string; token: string }> {
-  const response = await request(app).post("/account/auth/signup").send(user);
-  const id = response.body.registeredUser.id;
-  const token = response.body.backendTokens.accessToken;
-  return { id, token };
-}
-
-async function createGossip(token: string, text: string): Promise<string> {
-  const response = await request(app)
-    .post("/gossips/create")
-    .set("Authorization", `Bearer ${token}`)
-    .send({ title: text, content: text });
-
-  return response.body.createdGossip.id;
-}
-
-async function createComment(
-  token: string,
-  gossipId: string,
-  text: string
-): Promise<string> {
-  const response = await request(app)
-    .post(`/gossips/create/${gossipId}/comment`)
-    .set("Authorization", `Bearer ${token}`)
-    .send({ content: text });
-  return response.body.createdComment.id;
-}
-
-async function likeItem(
-  token: string,
-  itemId: string,
-  itemType: "Comment" | "Gossip"
-): Promise<boolean> {
-  const response = await request(app)
-    .post(`/likes/${itemId}/like?itemType=${itemType}`)
-    .set("Authorization", `Bearer ${token}`);
-  return response.status === HTTP_STATUSES.OK_200;
-}
+import {
+  createUser,
+  createGossip,
+  createComment,
+  likeItem,
+  user1,
+  user2,
+} from "../test-helpers";
 
 describe("Users route", () => {
   beforeAll(async () => {
@@ -89,7 +53,7 @@ describe("Users route", () => {
 
   describe("User deleting", () => {
     describe("When data is valid", () => {
-      it("should delete user from users list", async () => {
+      it("should delete user and all related data", async () => {
         const testingUser = await createUser(user1);
         const controlUser = await createUser(user2);
 
@@ -101,6 +65,7 @@ describe("Users route", () => {
         const comment2 = await createComment(testingUser.token, gossip3, "2");
         const comment3 = await createComment(controlUser.token, gossip1, "3");
         const comment4 = await createComment(controlUser.token, gossip3, "4");
+        const comment5 = await createComment(controlUser.token, gossip2, "5");
 
         await likeItem(testingUser.token, gossip1, "Gossip");
         await likeItem(testingUser.token, gossip3, "Gossip");
@@ -108,6 +73,16 @@ describe("Users route", () => {
         await likeItem(testingUser.token, comment2, "Comment");
         await likeItem(testingUser.token, comment3, "Comment");
         await likeItem(testingUser.token, comment4, "Comment");
+        await likeItem(testingUser.token, comment5, "Comment");
+
+        await likeItem(controlUser.token, gossip1, "Gossip");
+        await likeItem(controlUser.token, comment1, "Comment");
+        await likeItem(controlUser.token, comment2, "Comment");
+        await likeItem(controlUser.token, comment3, "Comment");
+        await likeItem(controlUser.token, comment5, "Comment");
+
+        const gossipIds = [gossip1, gossip2];
+        const likedCommentsIds = [comment1, comment2, comment3, comment5];
 
         const deleteRes = await request(app)
           .delete(`/users/delete/${testingUser.id}`)
@@ -127,11 +102,23 @@ describe("Users route", () => {
         const commentsArr = await Comment.find({ author: testingUser.id });
         expect(commentsArr.length).toBe(0);
 
+        // check if comments on user's gossips were deleted from db
+        const commentsOnUserGossips = await Comment.find({
+          gossip: { $in: gossipIds },
+        });
+        expect(commentsOnUserGossips.length).toBe(0);
+
         // check if likes were cleaned up in db
         const gossipsWithLikes = await Gossip.find({ likes: testingUser.id });
         expect(gossipsWithLikes.length).toBe(0);
         const commentsWithLikes = await Comment.find({ likes: testingUser.id });
         expect(commentsWithLikes.length).toBe(0);
+
+        // Check if likedComments of other users do not contain IDs of deleted comments
+        const controlUserFromDb = await User.findById(controlUser.id);
+        for (const commentId of likedCommentsIds) {
+          expect(controlUserFromDb!.likedComments).not.toContain(commentId);
+        }
       });
     });
     describe("When data is invalid", () => {
@@ -150,16 +137,3 @@ describe("Users route", () => {
     });
   });
 });
-
-const user1 = {
-  firstName: "John",
-  lastName: "Doe",
-  email: "john.doe@example.com",
-  password: "password123",
-};
-const user2 = {
-  firstName: "Jane",
-  lastName: "Doe",
-  email: "jane.doe@example.com",
-  password: "password123",
-};

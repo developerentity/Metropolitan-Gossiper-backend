@@ -1,6 +1,4 @@
-import mongoose, { CallbackError, Document, Model, Schema } from "mongoose";
-import Gossip from "./gossip-model";
-import Comment from "./comment-model";
+import mongoose, { Document, Model, Schema } from "mongoose";
 
 export interface IUser {
   firstName: string;
