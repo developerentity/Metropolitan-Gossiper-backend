@@ -73,7 +73,7 @@ export const gossipsService = {
     const gossip = await gossipsRepo.findGossipById(gossipId);
     if (!gossip) return null;
     if (gossip.imageName) await s3Manager.delete(gossip.imageName);
-    await gossipsRepo.deleteAndDissociateFromUser(gossipId);
+    await gossipsRepo.deleteOne(gossipId);
     return await this._transformToViewModel(gossip);
   },
   async readGossipById(gossipId: string): Promise<GossipViewModel | null> {

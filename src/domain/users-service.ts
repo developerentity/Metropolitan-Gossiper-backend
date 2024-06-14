@@ -190,6 +190,8 @@ export const usersService = {
       about: user.about,
       gossips: user.gossips,
       createdAt: user.createdAt,
+      likedGossips: user.likedGossips,
+      likedComments: user.likedComments,
     };
   },
 };

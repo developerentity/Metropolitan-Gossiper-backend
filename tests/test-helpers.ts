@@ -20,11 +20,18 @@ export async function createUser(user: {
   lastName: string;
   email: string;
   password: string;
-}): Promise<{ id: string; token: string }> {
+}): Promise<{
+  id: string;
+  token: string;
+  likedComments: string[];
+  likedGossips: string[];
+  gossips: string[];
+}> {
   const response = await request(app).post("/account/auth/signup").send(user);
-  const id = response.body.registeredUser.id;
+  const { id, likedGossips, likedComments, gossips } =
+    response.body.registeredUser;
   const token = response.body.backendTokens.accessToken;
-  return { id, token };
+  return { id, token, likedGossips, likedComments, gossips };
 }
 
 export async function createGossip(

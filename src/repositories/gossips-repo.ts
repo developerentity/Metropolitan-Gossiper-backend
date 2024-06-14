@@ -22,10 +22,13 @@ export const gossipsRepo = {
   async createAndAssociateWithUser(gossip: IGossip): Promise<IGossipModel> {
     return await Gossip.createAndAssociateWithUser(gossip);
   },
-  async deleteAndDissociateFromUser(gossipId: string): Promise<boolean> {
-    const res = await Gossip.deleteOne({ _id: gossipId });
+  // async deleteAndDissociateFromUser(gossipId: string): Promise<boolean> {
+  //   const res = await Gossip.deleteOne({ _id: gossipId });
 
-    return res.deletedCount === 1;
+  //   return res.deletedCount === 1;
+  // },
+  async deleteOne(gossipId: string): Promise<DeleteResult | null> {
+    return await Gossip.findByIdAndDelete(gossipId);
   },
   async removeAllGossipsByTheUser(userId: string): Promise<DeleteResult> {
     return await Gossip.deleteMany({ author: userId });
