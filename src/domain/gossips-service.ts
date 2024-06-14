@@ -15,7 +15,7 @@ export const gossipsService = {
     title: string,
     content: string,
     file?: { size: number; buffer: Buffer; mimetype: string }
-  ): Promise<IGossipModel | null> {
+  ): Promise<GossipViewModel | null> {
     let imageName = undefined;
     if (file) imageName = await s3Manager.create(file);
 
@@ -28,7 +28,9 @@ export const gossipsService = {
       likes: [],
     };
 
-    return gossipsRepo.createAndAssociateWithUser(gossip);
+    const createdGossip = await gossipsRepo.createAndAssociateWithUser(gossip);
+
+    return await this._transformToViewModel(createdGossip);
   },
   async updateGossip(
     gossip: IGossipModel,
@@ -36,7 +38,7 @@ export const gossipsService = {
       content: string;
       file?: { size: number; buffer: Buffer; mimetype: string };
     }
-  ): Promise<IGossipModel | null> {
+  ): Promise<GossipViewModel | null> {
     const oldImageName = gossip.imageName;
     let imageName: string | undefined | null = undefined;
 
@@ -51,7 +53,12 @@ export const gossipsService = {
       imageName,
     };
 
-    return gossipsRepo.updateGossip(gossip._id, processedOps);
+    const updatedGossip = await gossipsRepo.updateGossip(
+      gossip._id,
+      processedOps
+    );
+
+    return updatedGossip ? this._transformToViewModel(updatedGossip) : null;
   },
   async likeGossip(author: string, gossipId: string): Promise<string[] | null> {
     return gossipsRepo.likeGossip(author, gossipId);
@@ -62,12 +69,12 @@ export const gossipsService = {
   ): Promise<string[] | null> {
     return gossipsRepo.unlikeGossip(author, gossipId);
   },
-  async deleteGossip(gossipId: string): Promise<IGossipModel | null> {
+  async deleteGossip(gossipId: string): Promise<GossipViewModel | null> {
     const gossip = await gossipsRepo.findGossipById(gossipId);
     if (!gossip) return null;
     if (gossip.imageName) await s3Manager.delete(gossip.imageName);
-    await gossipsRepo.deleteAndDissociateFromUser(gossipId);
-    return gossip;
+    await gossipsRepo.deleteOne(gossipId);
+    return await this._transformToViewModel(gossip);
   },
   async readGossipById(gossipId: string): Promise<GossipViewModel | null> {
     const gossip = await gossipsQueryRepo.findGossipById(gossipId);

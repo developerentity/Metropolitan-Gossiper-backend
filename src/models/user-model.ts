@@ -1,6 +1,4 @@
-import mongoose, { CallbackError, Document, Model, Schema } from "mongoose";
-import Gossip from "./gossip-model";
-import Comment from "./comment-model";
+import mongoose, { Document, Model, Schema } from "mongoose";
 
 export interface IUser {
   firstName: string;
@@ -124,17 +122,5 @@ UserSchema.statics.cleanUpCommentAssociations = async function (
   }
 };
 
-UserSchema.pre("deleteOne", async function (next) {
-  try {
-    const userId = this.getQuery()._id;
-
-    await Gossip.cleanUpUserAssociations(userId);
-    await Comment.cleanUpUserAssociations(userId);
-
-    next();
-  } catch (err) {
-    next(err as CallbackError);
-  }
-});
-
-export default mongoose.model<IUserModel, IUserModelStatic>("User", UserSchema);
+const User = mongoose.model<IUserModel, IUserModelStatic>("User", UserSchema);
+export default User;

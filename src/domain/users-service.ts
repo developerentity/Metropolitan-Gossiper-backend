@@ -11,6 +11,10 @@ import { UserViewModel } from "../models/users/user-view-model";
 import { s3Manager } from "../utils/s3-manager";
 import { usersQueryRepo } from "../repositories/users-query-repo";
 import { ItemsListViewModel } from "../types/response-types";
+import { commentsRepo } from "../repositories/comments-repo";
+import { commentsQueryRepo } from "../repositories/comments-query-repo";
+import { gossipsRepo } from "../repositories/gossips-repo";
+import { gossipsQueryRepo } from "../repositories/gossips-query-repo";
 
 /**
  *  This is a BLL (Business Logic Layer).
@@ -138,6 +142,39 @@ export const usersService = {
       ),
     };
   },
+  async deleteUserAndRelatedData(userId: string): Promise<boolean> {
+    // Step 1: Find all comments by the user
+    const comments = await commentsQueryRepo.findAllCommentsByTheUser(userId);
+
+    // Step 2: Remove all comments by the user
+    await commentsRepo.removeAllCommentsByTheUser(userId);
+
+    // Step 3: Remove user's likes from other gossips and comments
+    await gossipsRepo.removeUsersLikes(userId);
+    await commentsRepo.removeUsersLikes(userId);
+
+    // Step 4: Find all gossips by the user
+    const gossips = await gossipsQueryRepo.findAllGossipsByTheUser(userId);
+
+    // Step 5: Remove all comments on user's gossips
+    const gossipIds = gossips.map((gossip) => gossip._id);
+    await commentsRepo.removeAllCommentsOnUsersGossips(gossipIds);
+
+    // Step 6: Remove all gossips by the user
+    await gossipsRepo.removeAllGossipsByTheUser(userId);
+
+    // Step 7: Remove references to user's comments from likedComments of other users
+    const commentIds = comments.map((comment) => comment._id);
+    await usersRepo.removeLikedCommentsFromUsersLikesArray(commentIds);
+
+    // Step 8: Remove references to user's gossips from likedGossips of other users
+    await usersRepo.removeLikedGossipsFromUsersLikesArray(gossipIds);
+
+    // Step 9: Remove the user
+    await usersRepo.deleteUser(userId);
+
+    return true;
+  },
   async _transformToViewModel(user: IUserModel): Promise<UserViewModel> {
     const avatarUrl = user.avatarName
       ? await s3Manager.read(user.avatarName)
@@ -153,6 +190,8 @@ export const usersService = {
       about: user.about,
       gossips: user.gossips,
       createdAt: user.createdAt,
+      likedGossips: user.likedGossips,
+      likedComments: user.likedComments,
     };
   },
 };

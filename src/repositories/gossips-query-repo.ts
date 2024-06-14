@@ -11,6 +11,9 @@ export const gossipsQueryRepo = {
   async findGossipById(gossipId: string): Promise<IGossipModel | null> {
     return await Gossip.findById(gossipId);
   },
+  async findAllGossipsByTheUser(userId: string): Promise<{_id: string}[]> {
+    return await Gossip.find({ author: userId }).select("_id");
+  },
   async findGossips(queryParams: {
     authorId?: string;
     limit?: number;

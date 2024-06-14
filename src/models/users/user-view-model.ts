@@ -7,5 +7,7 @@ export type UserViewModel = {
   email: string;
   about: string;
   gossips: string[];
+  likedGossips: string[];
+  likedComments: string[];
   createdAt: Date;
 };
