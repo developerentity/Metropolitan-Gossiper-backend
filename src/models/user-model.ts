@@ -1,4 +1,4 @@
-import mongoose, { Document, Model, Schema } from "mongoose";
+import mongoose, { Document, Schema } from "mongoose";
 
 export interface IUser {
   firstName: string;
@@ -18,11 +18,6 @@ export interface IUser {
 export interface IUserModel extends IUser, Document {
   createdAt: Date;
   updatedAt: Date;
-}
-
-export interface IUserModelStatic extends Model<IUserModel> {
-  cleanUpGossipAssociations(gossipId: string): Promise<void>;
-  cleanUpCommentAssociations(commentIds: string[]): Promise<void>;
 }
 
 const UserSchema: Schema = new Schema(
@@ -66,61 +61,5 @@ const UserSchema: Schema = new Schema(
   { timestamps: true }
 );
 
-UserSchema.statics.cleanUpGossipAssociations = async function (
-  gossipId: string
-) {
-  const session = await mongoose.startSession();
-  session.startTransaction();
-
-  try {
-    // delete gossipId from owner's "gossips" array
-    await this.updateOne(
-      { gossips: { $in: [gossipId] } },
-      { $pull: { gossips: gossipId } }
-    ).session(session);
-
-    // clean up all likes in users' "likedGossips" array
-    await this.updateMany(
-      { likedGossips: { $in: [gossipId] } },
-      { $pull: { likedGossips: gossipId } }
-    ).session(session);
-
-    await session.commitTransaction();
-    session.endSession();
-  } catch (error) {
-    await session.abortTransaction();
-    session.endSession();
-    throw error;
-  }
-};
-
-UserSchema.statics.cleanUpCommentAssociations = async function (
-  commentIds: string[]
-) {
-  const session = await mongoose.startSession();
-  session.startTransaction();
-
-  try {
-    // clean up all likes in users' "likedComments" array
-    await this.updateMany(
-      { likedComments: { $in: commentIds } },
-      { $pull: { likedComments: { $in: commentIds } } }
-    ).session(session);
-
-    // delete commentId from owner's "comments" array
-    await this.updateMany(
-      { comments: { $in: commentIds } },
-      { $pull: { comments: { $in: commentIds } } }
-    ).session(session);
-
-    await session.commitTransaction();
-    session.endSession();
-  } catch (error) {
-    await session.abortTransaction();
-    session.endSession();
-    throw error;
-  }
-};
-
-const User = mongoose.model<IUserModel, IUserModelStatic>("User", UserSchema);
+const User = mongoose.model<IUserModel>("User", UserSchema);
 export default User;

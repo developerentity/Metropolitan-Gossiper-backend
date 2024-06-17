@@ -144,11 +144,15 @@ const deleteComment = async (req: Request, res: Response) => {
         .json({ message: "You are not authorized to delete this comment" });
     }
 
-    const deletedComment = await commentsService.deleteComment(commentId);
+    const result = await commentsService.deleteCommentAndRelatedData(commentId);
+    if (!result)
+      return res
+        .status(HTTP_STATUSES.INTERNAL_SERVER_ERROR_500)
+        .json({ message: "An item or some of related data wasn't deleted" });
 
     return res
       .status(HTTP_STATUSES.OK_200)
-      .json({ message: "Comment deleted", comment: deletedComment });
+      .json({ message: "Comment deleted", comment: result });
   } catch (error) {
     Logging.error(error);
     return res

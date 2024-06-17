@@ -143,34 +143,37 @@ export const usersService = {
     };
   },
   async deleteUserAndRelatedData(userId: string): Promise<boolean> {
-    // Step 1: Find all comments by the user
+    // find all comments by the user
     const comments = await commentsQueryRepo.findAllCommentsByTheUser(userId);
+    const commentsIds = comments.map((comment) => comment._id);
 
-    // Step 2: Remove all comments by the user
-    await commentsRepo.removeAllCommentsByTheUser(userId);
-
-    // Step 3: Remove user's likes from other gossips and comments
-    await gossipsRepo.removeUsersLikes(userId);
-    await commentsRepo.removeUsersLikes(userId);
-
-    // Step 4: Find all gossips by the user
+    // find all gossips by the user
     const gossips = await gossipsQueryRepo.findAllGossipsByTheUser(userId);
-
-    // Step 5: Remove all comments on user's gossips
     const gossipIds = gossips.map((gossip) => gossip._id);
-    await commentsRepo.removeAllCommentsOnUsersGossips(gossipIds);
 
-    // Step 6: Remove all gossips by the user
+    // remove all comments and gossips by the user
+    await commentsRepo.removeAllCommentsByTheUser(userId);
     await gossipsRepo.removeAllGossipsByTheUser(userId);
 
-    // Step 7: Remove references to user's comments from likedComments of other users
-    const commentIds = comments.map((comment) => comment._id);
-    await usersRepo.removeLikedCommentsFromUsersLikesArray(commentIds);
+    // remove all comments on user's gossips
+    await commentsRepo.removeAllCommentsOnUsersGossips(gossipIds);
 
-    // Step 8: Remove references to user's gossips from likedGossips of other users
-    await usersRepo.removeLikedGossipsFromUsersLikesArray(gossipIds);
+    // remove all gossips by the user
+    await gossipsRepo.removeAllGossipsByTheUser(userId);
 
-    // Step 9: Remove the user
+    // remove user's likes from other comments and gossips
+    await commentsRepo.removeUsersLikes(userId);
+    await gossipsRepo.removeUsersLikes(userId);
+
+    // remove references to likedComments
+    // and likedGossips of all users
+    await usersRepo.removeLikedCommentsReference(commentsIds);
+    await usersRepo.removeLikedGossipsReference(gossipIds);
+
+    // remove user's token
+    await tokensRepo.deleteByUserId(userId);
+
+    // remove the user
     await usersRepo.deleteUser(userId);
 
     return true;

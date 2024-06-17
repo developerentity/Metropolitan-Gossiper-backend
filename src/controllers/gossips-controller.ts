@@ -138,10 +138,15 @@ const deleteGossip = async (req: Request, res: Response) => {
         .json({ message: "You are not authorized to delete this gossip" });
     }
 
-    const deletedGossip = await gossipsService.deleteGossip(gossipId);
+    const result = await gossipsService.deleteGossipAndRelatedData(gossipId);
+    if (!result)
+      return res
+        .status(HTTP_STATUSES.INTERNAL_SERVER_ERROR_500)
+        .json({ message: "An item or some of related data wasn't deleted" });
+
     return res
       .status(HTTP_STATUSES.OK_200)
-      .json({ message: "Gossip deleted", gossip: deletedGossip });
+      .json({ message: "Gossip deleted", gossip: result });
   } catch (error) {
     Logging.error(error);
     return res

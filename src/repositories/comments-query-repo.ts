@@ -29,4 +29,9 @@ export const commentsQueryRepo = {
   async findAllCommentsByTheUser(userId: string): Promise<{ _id: string }[]> {
     return await Comment.find({ author: userId }).select("_id");
   },
+  async findAllCommentsByTheGossip(
+    gossipId: string
+  ): Promise<{ _id: string }[]> {
+    return await Comment.find({ gossip: gossipId }).select("_id");
+  },
 };

@@ -2,6 +2,8 @@ import { IComment, ICommentModel } from "../models/comment-model";
 import { CommentViewModel } from "../models/comments/comment-view-model";
 import { commentsQueryRepo } from "../repositories/comments-query-repo";
 import { commentsRepo } from "../repositories/comments-repo";
+import { gossipsRepo } from "../repositories/gossips-repo";
+import { usersRepo } from "../repositories/users-repo";
 import { ItemsListViewModel } from "../types/response-types";
 
 /**
@@ -48,13 +50,6 @@ export const commentsService = {
   ): Promise<string[] | null> {
     return commentsRepo.unlikeComment(author, commentId);
   },
-  async deleteComment(commentId: string): Promise<CommentViewModel | null> {
-    const deletedComment =
-      await commentsRepo.deleteAndDissociateFromUserAndGossip(commentId);
-    return deletedComment
-      ? await this._transformToViewModel(deletedComment)
-      : null;
-  },
   async readComments(
     gossipId: string,
     queryParams: {
@@ -75,6 +70,21 @@ export const commentsService = {
         commentsData.items.map((comment) => this._transformToViewModel(comment))
       ),
     };
+  },
+  async deleteCommentAndRelatedData(commentId: string): Promise<boolean> {
+    // remove reference from parent author
+    await usersRepo.removeCommentReference([commentId]);
+
+    // remove reference from parent gossip
+    await gossipsRepo.removeCommentReference(commentId);
+
+    // remove references to likedComments arrays of all users
+    await usersRepo.removeLikedCommentsReference([commentId]);
+
+    // remove the user
+    await commentsRepo.deleteOne(commentId);
+
+    return true;
   },
   async _transformToViewModel(
     comment: ICommentModel

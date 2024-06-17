@@ -13,7 +13,8 @@ import {
   likeItem,
   user1,
   user2,
-} from "../test-helpers";
+} from "./integration-test-helpers";
+import Token from "../../src/models/token-model";
 
 describe("Users route", () => {
   beforeAll(async () => {
@@ -57,31 +58,36 @@ describe("Users route", () => {
         const testingUser = await createUser(user1);
         const controlUser = await createUser(user2);
 
-        const gossip1 = await createGossip(testingUser.token, "1");
-        const gossip2 = await createGossip(testingUser.token, "2");
-        const gossip3 = await createGossip(controlUser.token, "3");
+        const [gossip1, gossip2, gossip3] = await Promise.all([
+          createGossip(testingUser.token, "1"),
+          createGossip(testingUser.token, "2"),
+          createGossip(controlUser.token, "3"),
+        ]);
 
-        const comment1 = await createComment(testingUser.token, gossip1, "1");
-        const comment2 = await createComment(testingUser.token, gossip3, "2");
-        const comment3 = await createComment(controlUser.token, gossip1, "3");
-        const comment4 = await createComment(controlUser.token, gossip3, "4");
-        const comment5 = await createComment(controlUser.token, gossip2, "5");
+        const [comment1, comment2, comment3, comment4, comment5] =
+          await Promise.all([
+            createComment(testingUser.token, gossip1.id, "1"),
+            createComment(testingUser.token, gossip3.id, "2"),
+            createComment(controlUser.token, gossip1.id, "3"),
+            createComment(controlUser.token, gossip3.id, "4"),
+            createComment(controlUser.token, gossip2.id, "5"),
+          ]);
 
-        await likeItem(testingUser.token, gossip1, "Gossip");
-        await likeItem(testingUser.token, gossip3, "Gossip");
-        await likeItem(testingUser.token, comment1, "Comment");
-        await likeItem(testingUser.token, comment2, "Comment");
-        await likeItem(testingUser.token, comment3, "Comment");
-        await likeItem(testingUser.token, comment4, "Comment");
-        await likeItem(testingUser.token, comment5, "Comment");
+        await Promise.all([
+          likeItem(testingUser.token, gossip1.id, "Gossip"),
+          likeItem(testingUser.token, gossip3.id, "Gossip"),
+          likeItem(controlUser.token, gossip1.id, "Gossip"),
+          likeItem(testingUser.token, comment1.id, "Comment"),
+          likeItem(testingUser.token, comment2.id, "Comment"),
+          likeItem(testingUser.token, comment3.id, "Comment"),
+          likeItem(testingUser.token, comment4.id, "Comment"),
+          likeItem(testingUser.token, comment5.id, "Comment"),
+          likeItem(controlUser.token, comment1.id, "Comment"),
+          likeItem(controlUser.token, comment2.id, "Comment"),
+          likeItem(controlUser.token, comment3.id, "Comment"),
+          likeItem(controlUser.token, comment5.id, "Comment"),
+        ]);
 
-        await likeItem(controlUser.token, gossip1, "Gossip");
-        await likeItem(controlUser.token, comment1, "Comment");
-        await likeItem(controlUser.token, comment2, "Comment");
-        await likeItem(controlUser.token, comment3, "Comment");
-        await likeItem(controlUser.token, comment5, "Comment");
-
-        const gossipIds = [gossip1, gossip2];
         const likedCommentsIds = [comment1, comment2, comment3, comment5];
 
         const deleteRes = await request(app)
@@ -94,6 +100,10 @@ describe("Users route", () => {
         const isUserExist = await User.findById(testingUser.id);
         expect(isUserExist).toBeNull();
 
+        // check if user's token deleted from db
+        const isTokenExist = await Token.find({ userId: testingUser.id });
+        expect(isTokenExist).toHaveLength(0);
+
         // check if gossip created by user were deleted from db
         const gossipsArr = await Gossip.find({ author: testingUser.id });
         expect(gossipsArr.length).toBe(0);
@@ -104,7 +114,7 @@ describe("Users route", () => {
 
         // check if comments on user's gossips were deleted from db
         const commentsOnUserGossips = await Comment.find({
-          gossip: { $in: gossipIds },
+          gossip: { $in: [gossip1.id, gossip2.id] },
         });
         expect(commentsOnUserGossips.length).toBe(0);
 

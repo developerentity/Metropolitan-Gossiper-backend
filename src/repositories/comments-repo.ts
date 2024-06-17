@@ -7,13 +7,11 @@ import { UpdateWriteOpResult } from "mongoose";
  * Which is responsible for CUD (CRUD without Read) operations.
  */
 export const commentsRepo = {
+  // need to fix (split in services)
   async createAndAssociateWithUserAndGossip(
     comment: IComment
   ): Promise<ICommentModel> {
     return await Comment.createAndAssociateWithUserAndGossip(comment);
-  },
-  async findCommentById(commentId: string): Promise<ICommentModel | null> {
-    return await Comment.findById(commentId);
   },
   async likeComment(
     author: string,
@@ -27,13 +25,19 @@ export const commentsRepo = {
   ): Promise<string[] | null> {
     return await Comment.unlikeComment(author, commentId);
   },
-  async deleteAndDissociateFromUserAndGossip(
-    commentId: string
-  ): Promise<ICommentModel | null> {
-    return await Comment.deleteAndDissociateFromUserAndGossip(commentId);
+
+  // clean methods
+  async findCommentById(commentId: string): Promise<ICommentModel | null> {
+    return await Comment.findById(commentId);
+  },
+  async deleteOne(commentId: string): Promise<DeleteResult | null> {
+    return await Comment.findByIdAndDelete(commentId);
   },
   async removeAllCommentsByTheUser(userId: string): Promise<DeleteResult> {
     return await Comment.deleteMany({ author: userId });
+  },
+  async removeAllCommentsByTheGossip(gossipId: string): Promise<DeleteResult> {
+    return await Comment.deleteMany({ gossip: gossipId });
   },
   async removeAllCommentsOnUsersGossips(
     gossipIds: string[]

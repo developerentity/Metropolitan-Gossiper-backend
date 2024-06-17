@@ -158,9 +158,13 @@ const deleteUser = async (
   }
 
   try {
-    const result = await usersService.deleteUserAndRelatedData(userId)
-    if (!result) return res.status(HTTP_STATUSES.BAD_REQUEST_400);
-    res.status(HTTP_STATUSES.OK_200).json({ message: "Deleted" });
+    const result = await usersService.deleteUserAndRelatedData(userId);
+    if (!result)
+      return res
+        .status(HTTP_STATUSES.INTERNAL_SERVER_ERROR_500)
+        .json({ message: "An item or some of related data wasn't deleted" });
+
+    return res.status(HTTP_STATUSES.OK_200).json({ message: "Deleted" });
   } catch (error) {
     Logging.error(error);
     return res

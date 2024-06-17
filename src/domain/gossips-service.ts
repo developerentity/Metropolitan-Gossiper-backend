@@ -1,7 +1,10 @@
 import { IGossip, IGossipModel } from "../models/gossip-model";
 import { GossipViewModel } from "../models/gossips/gossip-view-model";
+import { commentsQueryRepo } from "../repositories/comments-query-repo";
+import { commentsRepo } from "../repositories/comments-repo";
 import { gossipsQueryRepo } from "../repositories/gossips-query-repo";
 import { gossipsRepo } from "../repositories/gossips-repo";
+import { usersRepo } from "../repositories/users-repo";
 import { ItemsListViewModel } from "../types/response-types";
 import { s3Manager } from "../utils/s3-manager";
 
@@ -75,6 +78,29 @@ export const gossipsService = {
     if (gossip.imageName) await s3Manager.delete(gossip.imageName);
     await gossipsRepo.deleteOne(gossipId);
     return await this._transformToViewModel(gossip);
+  },
+  async deleteGossipAndRelatedData(gossipId: string): Promise<boolean> {
+    // find all comments by the gossip
+    const array = await commentsQueryRepo.findAllCommentsByTheGossip(gossipId);
+    const commentsIds = array.map((comment) => comment._id);
+
+    // remove references from from comments
+    // and gossips arrays of all users
+    await usersRepo.removeCommentReference(commentsIds);
+    await usersRepo.removeGossipsReference([gossipId]);
+
+    // remove references to likedComments
+    // and likedGossips arrays of all users
+    await usersRepo.removeLikedCommentsReference(commentsIds);
+    await usersRepo.removeLikedGossipsReference([gossipId]);
+
+    // remove all comments by the gossip
+    await commentsRepo.removeAllCommentsByTheGossip(gossipId);
+
+    // remove the user
+    await gossipsRepo.deleteOne(gossipId);
+
+    return true;
   },
   async readGossipById(gossipId: string): Promise<GossipViewModel | null> {
     const gossip = await gossipsQueryRepo.findGossipById(gossipId);

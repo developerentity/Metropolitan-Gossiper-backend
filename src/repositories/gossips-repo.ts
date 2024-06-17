@@ -7,34 +7,9 @@ import { UpdateWriteOpResult } from "mongoose";
  * Which is responsible for CUD (CRUD without Read) operations.
  */
 export const gossipsRepo = {
-  async findGossipById(gossipId: string): Promise<IGossipModel | null> {
-    return await Gossip.findById(gossipId);
-  },
-  async updateGossip(
-    gossipId: string,
-    updateOps: Partial<IGossip>
-  ): Promise<IGossipModel | null> {
-    const result = await Gossip.findByIdAndUpdate(gossipId, updateOps, {
-      new: true,
-    });
-    return result;
-  },
+  // need to fix (split in services)
   async createAndAssociateWithUser(gossip: IGossip): Promise<IGossipModel> {
     return await Gossip.createAndAssociateWithUser(gossip);
-  },
-  // async deleteAndDissociateFromUser(gossipId: string): Promise<boolean> {
-  //   const res = await Gossip.deleteOne({ _id: gossipId });
-
-  //   return res.deletedCount === 1;
-  // },
-  async deleteOne(gossipId: string): Promise<DeleteResult | null> {
-    return await Gossip.findByIdAndDelete(gossipId);
-  },
-  async removeAllGossipsByTheUser(userId: string): Promise<DeleteResult> {
-    return await Gossip.deleteMany({ author: userId });
-  },
-  async removeUsersLikes(userId: string): Promise<UpdateWriteOpResult> {
-    return await Gossip.updateMany({}, { $pull: { likes: userId } });
   },
   async likeGossip(author: string, gossipId: string): Promise<string[] | null> {
     return await Gossip.likeGossip(author, gossipId);
@@ -44,5 +19,33 @@ export const gossipsRepo = {
     gossipId: string
   ): Promise<string[] | null> {
     return await Gossip.unlikeGossip(author, gossipId);
+  },
+
+  // clean methods
+  async updateGossip(
+    gossipId: string,
+    updateOps: Partial<IGossip>
+  ): Promise<IGossipModel | null> {
+    const result = await Gossip.findByIdAndUpdate(gossipId, updateOps, {
+      new: true,
+    });
+    return result;
+  },
+  async findGossipById(gossipId: string): Promise<IGossipModel | null> {
+    return await Gossip.findById(gossipId);
+  },
+  async deleteOne(gossipId: string): Promise<DeleteResult | null> {
+    return await Gossip.findByIdAndDelete(gossipId);
+  },
+  async removeAllGossipsByTheUser(userId: string): Promise<DeleteResult> {
+    return await Gossip.deleteMany({ author: userId });
+  },
+  async removeCommentReference(
+    commentId: string
+  ): Promise<UpdateWriteOpResult> {
+    return await Gossip.updateMany({}, { $pull: { comments: commentId } });
+  },
+  async removeUsersLikes(userId: string): Promise<UpdateWriteOpResult> {
+    return await Gossip.updateMany({}, { $pull: { likes: userId } });
   },
 };
