@@ -1,6 +1,11 @@
 import request from "supertest";
-import { app } from "../src/app";
-import { HTTP_STATUSES } from "../src/http-statuses";
+import { app } from "../../src/app";
+import { HTTP_STATUSES } from "../../src/http-statuses";
+
+export type ControlUserType = {
+  id: string;
+  token: string;
+};
 
 export const user1 = {
   firstName: "John",
@@ -37,25 +42,25 @@ export async function createUser(user: {
 export async function createGossip(
   token: string,
   text: string
-): Promise<string> {
+): Promise<{ id: string }> {
   const response = await request(app)
     .post("/gossips/create")
     .set("Authorization", `Bearer ${token}`)
     .send({ title: text, content: text });
 
-  return response.body.createdGossip.id;
+  return { id: response.body.createdGossip.id };
 }
 
 export async function createComment(
   token: string,
   gossipId: string,
   text: string
-): Promise<string> {
+): Promise<{ id: string }> {
   const response = await request(app)
     .post(`/gossips/create/${gossipId}/comment`)
     .set("Authorization", `Bearer ${token}`)
     .send({ content: text });
-  return response.body.createdComment.id;
+  return { id: response.body.createdComment.id };
 }
 
 export async function likeItem(

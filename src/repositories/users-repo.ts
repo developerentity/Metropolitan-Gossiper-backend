@@ -23,11 +23,25 @@ export const usersRepo = {
     return await User.findOne({ email: email });
   },
   async deleteUser(userId: string): Promise<IUserModel | null> {
-    // should remain 'deleteOne' method
-    // fot the 'pre' middleware im the User model                 need to fix
     return await User.findByIdAndDelete(userId);
   },
-  async removeLikedGossipsFromUsersLikesArray(
+  async removeGossipsReference(
+    gossipsIds: string[]
+  ): Promise<UpdateWriteOpResult> {
+    return await User.updateMany(
+      {},
+      { $pull: { gossips: { $in: gossipsIds } } }
+    );
+  },
+  async removeCommentReference(
+    commentsIds: string[]
+  ): Promise<UpdateWriteOpResult> {
+    return await User.updateMany(
+      {},
+      { $pull: { comments: { $in: commentsIds } } }
+    );
+  },
+  async removeLikedGossipsReference(
     gossipIds: string[]
   ): Promise<UpdateWriteOpResult> {
     return await User.updateMany(
@@ -35,7 +49,7 @@ export const usersRepo = {
       { $pull: { likedGossips: { $in: gossipIds } } }
     );
   },
-  async removeLikedCommentsFromUsersLikesArray(
+  async removeLikedCommentsReference(
     commentIds: string[]
   ): Promise<UpdateWriteOpResult> {
     return await User.updateMany(
