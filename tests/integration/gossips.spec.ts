@@ -28,6 +28,60 @@ describe("Test request gossips route", () => {
     await db.closeDatabase();
   });
 
+  describe("Gossip creating", () => {
+    const gossipContent = {
+      title: "Some great title",
+      content: "Some great content",
+    };
+
+    describe("When data is valid", () => {
+      it(`should create gossip in db, 
+      return created gossip and return 201 status code`, async () => {
+        const testResponse = await request(app)
+          .post("/gossips/create")
+          .set("Authorization", `Bearer ${controlUser1.token}`)
+          .send(gossipContent);
+        expect(testResponse.status).toBe(HTTP_STATUSES.CREATED_201);
+
+        expect(testResponse.body.author).toBe(controlUser1.id);
+        expect(testResponse.body.title).toBe(gossipContent.title);
+        expect(testResponse.body.content).toBe(gossipContent.content);
+        expect(testResponse.body).toHaveProperty("id");
+        expect(testResponse.body).toHaveProperty("comments");
+        // expect(testResponse.body).toHaveProperty("imageUrl");
+        expect(testResponse.body).toHaveProperty("likes");
+        expect(testResponse.body).toHaveProperty("createdAt");
+        expect(testResponse.body).toHaveProperty("updatedAt");
+      });
+    });
+    describe("When data is invalid", () => {
+      it(`shouldn't create gossip with wrong token
+        and return 401 status code`, async () => {
+        const testResponse = await request(app)
+          .post("/gossips/create")
+          .set("Authorization", `Bearer -wrong-token-`)
+          .send(gossipContent);
+        expect(testResponse.status).toBe(HTTP_STATUSES.UNAUTHORIZED_401);
+      });
+      it(`shouldn't create gossip without title
+        and return 400 status code`, async () => {
+        const testResponse = await request(app)
+          .post("/gossips/create")
+          .set("Authorization", `Bearer ${controlUser1.token}`)
+          .send({ title: "", content: "Some content" });
+        expect(testResponse.status).toBe(HTTP_STATUSES.BAD_REQUEST_400);
+      });
+      it(`shouldn't create gossip without content
+        and return 400 status code`, async () => {
+        const testResponse = await request(app)
+          .post("/gossips/create")
+          .set("Authorization", `Bearer ${controlUser1.token}`)
+          .send({ title: "Some title", content: "" });
+        expect(testResponse.status).toBe(HTTP_STATUSES.BAD_REQUEST_400);
+      });
+    });
+  });
+
   describe("Gossip deleting", () => {
     describe("When data is valid", () => {
       it("should delete gossip and all related data ", async () => {

@@ -27,7 +27,7 @@ const createGossip = async (req: Request, res: Response) => {
       file
     );
 
-    return res.status(HTTP_STATUSES.CREATED_201).json({ createdGossip });
+    return res.status(HTTP_STATUSES.CREATED_201).json(createdGossip);
   } catch (error) {
     Logging.error(error);
     return res.status(HTTP_STATUSES.INTERNAL_SERVER_ERROR_500).json({
