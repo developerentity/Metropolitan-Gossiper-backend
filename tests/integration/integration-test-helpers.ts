@@ -48,7 +48,7 @@ export async function createGossip(
     .set("Authorization", `Bearer ${token}`)
     .send({ title: text, content: text });
 
-  return { id: response.body.createdGossip.id };
+  return { id: response.body.id };
 }
 
 export async function createComment(
