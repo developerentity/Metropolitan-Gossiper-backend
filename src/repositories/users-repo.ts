@@ -57,10 +57,6 @@ export const usersRepo = {
       { $pull: { likedComments: { $in: commentIds } } }
     );
   },
-  async checkIfEmailIsAlreadyOccupied(email: string): Promise<boolean> {
-    const existingUser = await User.findOne({ email });
-    return !!existingUser;
-  },
   async updateVerification(userId: string): Promise<boolean> {
     const result = await User.updateOne({ _id: userId }, { verified: true });
     return result.modifiedCount === 1;

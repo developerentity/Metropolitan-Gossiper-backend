@@ -12,7 +12,6 @@ import { ErrorResponse, ItemsListViewModel } from "../types/response-types";
 import { usersService } from "../domain/users-service";
 import { CreateUserModel } from "../models/users/create-user-model";
 import { URIParamsUserModel } from "../models/users/uri-params-user-model";
-import { usersRepo } from "../repositories/users-repo";
 import { UpdateUserModel } from "../models/users/update-user-model";
 import Logging from "../library/Logging";
 import { EXPIRES_TOKEN } from "../config";
@@ -26,13 +25,6 @@ const createUser = async (
   const { firstName, lastName, avatar, email, password, about } = req.body;
 
   try {
-    const existingUser = await usersRepo.checkIfEmailIsAlreadyOccupied(email);
-    if (existingUser) {
-      return res
-        .status(HTTP_STATUSES.BAD_REQUEST_400)
-        .send({ message: "User with such email already registered" });
-    }
-
     const user = await usersService.createUser(
       firstName,
       lastName,
