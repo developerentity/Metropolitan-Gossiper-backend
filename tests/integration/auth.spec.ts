@@ -39,7 +39,7 @@ describe("POST - /account/auth/signup", () => {
       const res = await request(app).post("/account/auth/signup").send({});
 
       expect(res.status).toBe(HTTP_STATUSES.BAD_REQUEST_400);
-      expect(res.body.errors.length).toEqual(6);
+      expect(res.body.errors.length).toEqual(8);
     });
 
     it("should return 400 if email is already registered", async () => {
@@ -47,9 +47,9 @@ describe("POST - /account/auth/signup", () => {
       const res = await request(app).post("/account/auth/signup").send(user2);
 
       expect(res.status).toBe(HTTP_STATUSES.BAD_REQUEST_400);
-      expect(res.body).toEqual({
-        message: "User with such email already registered",
-      });
+      expect(res.body.errors[0].msg).toBe(
+        "User with such email already registered"
+      );
     });
   });
 });
