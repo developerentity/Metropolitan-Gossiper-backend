@@ -12,9 +12,14 @@ export const usersRepo = {
   async createUser(user: IUser): Promise<IUserModel | null> {
     return await User.create(user);
   },
-  async updateUser(id: string, updateOps: { about: string }): Promise<boolean> {
-    const result = await User.updateOne({ _id: id }, { $set: updateOps });
-    return result.modifiedCount === 1;
+  async updateUser(
+    id: string,
+    updateOps: Partial<IUser>
+  ): Promise<IUserModel | null> {
+    const result = await User.findByIdAndUpdate(id, updateOps, {
+      new: true,
+    });
+    return result;
   },
   async findUserById(id: string): Promise<IUserModel | null> {
     return await User.findById(id).populate("gossips");

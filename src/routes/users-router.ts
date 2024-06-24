@@ -6,6 +6,7 @@ import { checkUserPermission } from "../middlewares/check-user-permission";
 import { checkUserIdValidity } from "../middlewares/check-id-validity";
 import { validate } from "../middlewares/validate";
 import { userUpdateValidator } from "../validators/user-update-validator";
+import fileMiddleware from "../middlewares/file-middleware";
 
 const router = express.Router();
 
@@ -16,6 +17,7 @@ router.patch(
   checkUserIdValidity,
   basicTokenValidator,
   checkUserPermission,
+  fileMiddleware,
   userUpdateValidator,
   validate,
   controller.updateUser

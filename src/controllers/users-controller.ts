@@ -113,9 +113,14 @@ const updateUser = async (
   res: Response
 ) => {
   const { userId } = req.params;
-  const { about } = req.body;
+  const { firstName, lastName, about } = req.body;
+  const user = req.user;
+  const file = req.file;
+
   const updateOps = {
-    // all the other updatable options...
+    firstName,
+    lastName,
+    profileImage: file,
     about,
   };
 
@@ -126,10 +131,10 @@ const updateUser = async (
   }
 
   try {
-    await usersService.updateUser(userId, updateOps);
+    const updatedUser = await usersService.updateUser(user, updateOps);
     return res
       .status(HTTP_STATUSES.OK_200)
-      .json({ message: "User info updated" });
+      .json({ message: "User info updated", updatedUser });
   } catch (error) {
     Logging.error(error);
     return res

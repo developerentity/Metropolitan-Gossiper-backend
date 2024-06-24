@@ -74,8 +74,33 @@ export const usersService = {
 
     return createdUser;
   },
-  async updateUser(id: string, updateOps: { about: string }): Promise<boolean> {
-    return usersRepo.updateUser(id, updateOps);
+  async updateUser(
+    user: IUserModel,
+    updateOps: {
+      firstName: string;
+      lastName: string;
+      about: string;
+      file?: { size: number; buffer: Buffer; mimetype: string };
+    }
+  ): Promise<UserViewModel | null> {
+    const oldAvatarName = user.avatarName;
+    let avatarName: string | undefined | null = undefined;
+
+    if (updateOps.file && updateOps.file.size !== 0) {
+      avatarName = await s3Manager.create(updateOps.file);
+
+      if (oldAvatarName) await s3Manager.delete(oldAvatarName);
+    }
+
+    const processedOps: Partial<IUser> = {
+      firstName: updateOps.firstName,
+      lastName: updateOps.lastName,
+      about: updateOps.about,
+      avatarName,
+    };
+
+    const updatedUser = await usersRepo.updateUser(user.id, processedOps);
+    return updatedUser ? this._transformToViewModel(updatedUser) : null;
   },
   async checkCredentials(
     email: string,
