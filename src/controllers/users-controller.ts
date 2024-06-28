@@ -8,7 +8,11 @@ import {
   RequestWithQuery,
 } from "../types/request-types";
 import { QueryUsersModel } from "../models/users/query-users-model";
-import { ErrorResponse, ItemsListViewModel } from "../types/response-types";
+import {
+  AuthResponseType,
+  ErrorResponse,
+  ItemsListViewModel,
+} from "../types/response-types";
 import { usersService } from "../domain/users-service";
 import { CreateUserModel } from "../models/users/create-user-model";
 import { URIParamsUserModel } from "../models/users/uri-params-user-model";
@@ -20,7 +24,7 @@ import { UserViewModel } from "../models/users/user-view-model";
 
 const createUser = async (
   req: RequestWithBody<CreateUserModel>,
-  res: Response
+  res: Response<AuthResponseType | ErrorResponse>
 ) => {
   const { firstName, lastName, avatar, email, password, about } = req.body;
 
@@ -42,12 +46,18 @@ const createUser = async (
 
     const registeredUser = await usersService.readUserById(user._id);
 
+    if (!registeredUser) {
+      return res
+        .status(HTTP_STATUSES.INTERNAL_SERVER_ERROR_500)
+        .json({ message: "An error occurred while registering the user." });
+    }
+
     const { accessToken, refreshToken } = await jwtService.generateTokens(
       user.id
     );
 
     return res.status(HTTP_STATUSES.OK_200).json({
-      registeredUser,
+      user: registeredUser,
       backendTokens: {
         accessToken,
         refreshToken,
@@ -110,7 +120,7 @@ const readAll = async (
 
 const updateUser = async (
   req: RequestWithParamsAndBody<URIParamsUserModel, UpdateUserModel>,
-  res: Response
+  res: Response<UserViewModel | ErrorResponse>
 ) => {
   const { userId } = req.params;
   const { firstName, lastName, about } = req.body;
@@ -132,9 +142,12 @@ const updateUser = async (
 
   try {
     const updatedUser = await usersService.updateUser(user, updateOps);
-    return res
-      .status(HTTP_STATUSES.OK_200)
-      .json({ message: "User info updated", updatedUser });
+    if (!updatedUser)
+      return res
+        .status(HTTP_STATUSES.INTERNAL_SERVER_ERROR_500)
+        .json({ message: "An error occurred while registering the user." });
+
+    return res.status(HTTP_STATUSES.OK_200).json(updatedUser);
   } catch (error) {
     Logging.error(error);
     return res

@@ -1,5 +1,6 @@
+import { UserViewModel } from "../models/users/user-view-model";
+
 export interface ErrorResponse {
-  error?: any;
   message?: any;
 }
 
@@ -8,4 +9,13 @@ export type ItemsListViewModel<T> = {
   totalPages: number;
   currentPage: number;
   items: T[];
+};
+
+export type AuthResponseType = {
+  user: UserViewModel;
+  backendTokens: {
+    accessToken: string;
+    refreshToken: string;
+    expiresIn: number;
+  };
 };

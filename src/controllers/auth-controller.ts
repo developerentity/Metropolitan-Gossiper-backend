@@ -5,8 +5,13 @@ import { usersService } from "../domain/users-service";
 import { jwtService } from "../application/jwt-service";
 import { HTTP_STATUSES } from "../http-statuses";
 import { EXPIRES_TOKEN } from "../config";
+import { UserViewModel } from "../models/users/user-view-model";
+import { AuthResponseType, ErrorResponse } from "../types/response-types";
 
-const getAuthData = async (req: Request, res: Response) => {
+const getAuthData = async (
+  req: Request,
+  res: Response<UserViewModel | ErrorResponse>
+) => {
   const userId = req.user._id;
 
   try {
@@ -15,7 +20,7 @@ const getAuthData = async (req: Request, res: Response) => {
     if (!userData) {
       return res
         .status(HTTP_STATUSES.NOT_FOUND_404)
-        .json({ error: "User not found" });
+        .json({ message: "User not found" });
     }
 
     return res.status(HTTP_STATUSES.OK_200).json(userData);
@@ -27,7 +32,10 @@ const getAuthData = async (req: Request, res: Response) => {
   }
 };
 
-const signin = async (req: Request, res: Response) => {
+const signin = async (
+  req: Request,
+  res: Response<AuthResponseType | ErrorResponse>
+) => {
   const { email, password } = req.body;
 
   try {
@@ -37,10 +45,10 @@ const signin = async (req: Request, res: Response) => {
     );
     const user = await usersService.readUserById(userIntrinsicData?._id);
 
-    if (!userIntrinsicData) {
+    if (!userIntrinsicData || !user) {
       return res
         .status(HTTP_STATUSES.UNAUTHORIZED_401)
-        .json({ error: "Invalid credentials" });
+        .json({ message: "Invalid credentials" });
     }
 
     const { accessToken, refreshToken } = await jwtService.generateTokens(
@@ -67,19 +75,29 @@ const signout = async (req: Request, res: Response) => {
   res.cookie("token", "", { maxAge: 0 }).sendStatus(HTTP_STATUSES.OK_200); // need to update according to new functional
 };
 
-const refreshToken = async (req: Request, res: Response) => {
+const refreshToken = async (
+  req: Request,
+  res: Response<AuthResponseType | ErrorResponse>
+) => {
   const [type, token] = req.headers.authorization?.split(" ") ?? [];
   const previousRefreshToken = type === "Refresh" ? token : undefined;
 
   if (!previousRefreshToken) {
     return res
       .status(HTTP_STATUSES.UNAUTHORIZED_401)
-      .send("Access Denied. No refresh token provided.");
+      .send({ message: "Access Denied. No refresh token provided." });
   }
 
   try {
     const userId = await jwtService.verifyRefreshJWT(previousRefreshToken);
     const user = await usersService.readUserById(userId);
+
+    if (!user) {
+      return res
+        .status(HTTP_STATUSES.UNAUTHORIZED_401)
+        .json({ message: "Invalid credentials" });
+    }
+
     const { accessToken, refreshToken } = await jwtService.generateTokens(
       userId
     );
